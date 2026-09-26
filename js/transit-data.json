@@ -1,0 +1,57 @@
+{
+  "pairs": {
+    "jurArrPair": {
+      "station": "JUR",
+      "destination": "JURD",
+      "screen-l": "assets/nsl/jur-arr.mp4",
+      "screen-r": "assets/nsl/ld-jur.mp4",
+      "vfd": "assets/nsl/ld-jur.mp4"
+    },
+    "bbtNxtPair": {
+      "station": "BBT",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/bbt-nxt.mp4",
+      "screen-r": "assets/nsl/ld-msp-ads.mp4",
+      "vfd": "assets/nsl/vfd/bbt-nxt.mp4",
+      "announcement": "assets/announcements/bbt-nxt.wav"
+    },
+    "bbtArrivingPair": {
+      "station": "BBT",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/bbt-arr.mp4",
+      "screen-r": "assets/nsl/ad-arr.mp4",
+      "vfd": "assets/nsl/vfd/bbt-arr.mp4",
+      "announcement": "assets/announcements/bbt-arr.wav"
+    },
+    "bbtArrivedPair": {
+      "station": "BBT",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/bbt-arrd.mp4",
+      "screen-r": "assets/nsl/ld-msp.mp4",
+      "vfd": "assets/nsl/vfd/bbt-arrd.mp4"
+    },
+    "doorsClosingPair": {
+      "screen-l": "assets/nsl/dc-1.mp4",
+      "screen-r": "assets/nsl/dc-2.mp4",
+      "announcement": "assets/announcements/dc-ann.wav",
+      "vfd": "assets/nsl/dc-2.mp4"
+    }
+  },
+  "lines": [
+    {
+      "code": "NSL",
+      "name": "TO MSP",
+      "stations": ["bbtNxtPair"]
+    },
+    {
+      "code": "EWL",
+      "name": "TO JUR",
+      "stations": ["jurArrPair"]
+    },
+    {
+      "code": "MSG",
+      "name": "MSG",
+      "stations": ["bbtNxtPair", "jurArrPair", "bbtNxtPair"]
+    }
+  ]
+}
