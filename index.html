@@ -185,16 +185,10 @@
         }
 
         .brand-mark {
-            color: #d73438;
-            font: italic 700 25px var(--font-ui);
-            letter-spacing: -.04em;
-        }
-
-        .brand-mark::before {
-            content: "◉";
-            display: inline-block;
-            margin-right: 3px;
-            font-size: 22px;
+            display: block;
+            width: 76px;
+            height: 22px;
+            object-fit: contain;
         }
 
         .brand-name {
@@ -233,8 +227,8 @@
 
         .route-area {
             display: grid;
-            grid-template-columns: minmax(92px, .8fr) 1fr minmax(60px, .48fr);
-            gap: 12px;
+            grid-template-columns: repeat(3, minmax(50px, 1fr));
+            gap: 7px;
             align-items: start;
         }
 
@@ -268,7 +262,7 @@
             grid-template-columns: repeat(3, minmax(50px, 1fr));
             gap: 7px;
             align-items: center;
-            margin: 7px 0 0 12px;
+            margin: 7px 0 0;
         }
 
         .direction-controls .down-control {
@@ -334,7 +328,7 @@
 
         .lcd {
             width: 100%;
-            min-height: 91px;
+            height: 108px;
             padding: 13px 12px 10px;
             overflow: hidden;
             border: 5px solid #343c3b;
@@ -402,7 +396,7 @@
         }
 
         .action-control.active .action-disc {
-            box-shadow: 0 0 14px #12e5bf80, inset 0 0 12px #11baa247;
+            box-shadow: 0 0 0 2px #12e5bf80, 0 0 14px #12e5bf80, inset 0 2px 5px #ffffff27, 0 2px 4px #000a;
         }
 
         .action-control.enter .control-caption {
@@ -500,7 +494,7 @@
 
         .scenario-row {
             display: grid;
-            grid-template-columns: 78px repeat(3, minmax(40px, 1fr));
+            grid-template-columns: repeat(3, minmax(40px, 1fr));
             align-items: center;
             gap: 9px;
         }
@@ -608,19 +602,14 @@
             box-shadow: inset 0 0 8px #000;
         }
 
-        .indicator-box.door {
-            display: grid;
-            place-items: center;
-            border-color: #484c43;
-            background: #b50038;
-            color: white;
-            font: 500 11px var(--font-data);
-        }
-
         .indicator-box.sd {
             height: 19px;
             border-color: #2c373a;
             background: linear-gradient(#0b1215, #142329);
+        }
+
+        .indicator-box.sd.empty::after {
+            display: none;
         }
 
         .indicator-box.sd::after {
@@ -716,7 +705,8 @@
             }
 
             .brand-mark {
-                font-size: 21px;
+                width: 60px;
+                height: 17px;
             }
 
             .brand-name {
@@ -823,7 +813,7 @@
             <div class="faceplate">
                 <header class="topbar">
                     <div class="section-label">Route / Message Selection</div>
-                    <div class="brand"><span class="brand-mark">SMRT</span><span class="brand-name">Transit Information
+                    <div class="brand"><img class="brand-mark" src="assets/img/stl.png" alt="STL"><span class="brand-name">Transit Information
                             System</span></div>
                     <div class="section-label top-right">Select Line / Message</div>
                 </header>
@@ -831,8 +821,8 @@
                     <section class="control-column left-column" aria-label="Route controls">
                         <div class="section-heading">Route / Message Selection</div>
                         <div class="route-area">
-                            <div class="route-code" aria-live="polite"><span id="routeLine">NSL</span><span
-                                    id="routeCode">N/S: 2012A</span></div>
+                            <div class="route-code" aria-live="polite"><span id="routeLine">WBNRFZ</span><span
+                                    id="routeCode">N/S: 11112A</span></div>
                             <div class="control-stack"><button class="round-control" id="stationUp"
                                     aria-label="Next station" title="Next station">⬆</button><span
                                     class="control-caption">STN Forward</span></div>
@@ -912,7 +902,7 @@
                     </section>
                 </div>
                 <footer class="statusbar" aria-label="Train system status">
-                    <div class="status-item"><span class="indicator-box door" id="doorIndicator">CLOSED</span><span
+                    <div class="status-item"><span class="indicator-box sd empty" aria-label="SD 1 empty"></span><span
                             class="status-name">SD 1</span></div>
                     <div class="status-item"><span class="status-light red"></span><span
                             class="status-name">Tacho</span></div>
@@ -937,33 +927,31 @@
         </section>
     </main>
     <script>
-        const marinaSouthPair = {
-            station: "Bukit Batok",
-            destination: "Marina South Pier",
-            cddVideo: "assets/nsl/bbt-nxt.mp4",
-            cldVideo: "assets/nsl/ld-msp.mp4"
-        };
-        const jurongPair = {
+        const jurArrPair = {
             station: "Jurong East",
             destination: "Jurong East",
             cddVideo: "assets/nsl/jur-arr.mp4",
             cldVideo: "assets/nsl/ld-jur.mp4"
         };
-        const arrivingPair = {
+        const bbtNxtPair = {
+            station: "Bukit Batok",
+            destination: "Marina South Pier",
+            cddVideo: "assets/nsl/bbt-nxt.mp4",
+            cldVideo: "assets/nsl/ld-msp.mp4"
+        };
+        const bbtArrivingPair = {
             station: "Bukit Batok",
             destination: "Marina South Pier",
             cddVideo: "assets/nsl/bbt-arr.mp4",
-            cldVideo: "assets/nsl/ld-msp.mp4"
+            cldVideo: "assets/nsl/ad1.mp4"
         };
-        const arrivedPair = {
+        const bbtArrivedPair = {
             station: "Bukit Batok",
             destination: "Marina South Pier",
             cddVideo: "assets/nsl/bbt-arrd.mp4",
             cldVideo: "assets/nsl/ld-msp.mp4"
         };
         const doorsClosingPair = {
-            station: "Bukit Batok",
-            destination: "Marina South Pier",
             cddVideo: "assets/nsl/dc-1.mp4",
             cldVideo: "assets/nsl/dc-2.mp4",
             announcement: "assets/announcements/dc-ann.wav"
@@ -972,20 +960,17 @@
             {
                 code: "NSL",
                 name: "TO MARINA SOUTH PIER",
-                stops: ["Bukit Batok"],
-                clips: [marinaSouthPair]
+                stations: [bbtNxtPair]
             },
             {
-                code: "NSL",
+                code: "EWL",
                 name: "TO JURONG EAST",
-                stops: ["Jurong East"],
-                clips: [jurongPair]
+                stations: [jurArrPair]
             },
             {
-                code: "NSL",
+                code: "MSG",
                 name: "MESSAGES",
-                stops: ["Bukit Batok", "Jurong East", "Bukit Batok"],
-                clips: [marinaSouthPair, jurongPair, marinaSouthPair]
+                stations: [bbtNxtPair, jurArrPair, bbtNxtPair]
             }
         ];
         let lineIndex = 0;
@@ -998,27 +983,55 @@
         let activeClip = null;
         let playbackGeneration = 0;
         let hasPressedStationForward = false;
+        const lastStationStorageKey = "nsl-transit-last-station";
         const $ = (id) => document.getElementById(id);
         const currentLine = () => lines[lineIndex];
-        const currentStop = () => currentLine().stops[Math.max(0, stopIndex) % currentLine().stops.length];
-        const currentClip = () => currentLine().clips[Math.max(0, stopIndex) % currentLine().clips.length];
+        const currentClip = () => currentLine().stations[Math.max(0, stopIndex) % currentLine().stations.length];
+        const currentStop = () => currentClip().station;
+        function rememberLastStation(clip) {
+            if (!currentLine().stations.includes(clip)) return;
+            try {
+                localStorage.setItem(lastStationStorageKey, JSON.stringify({
+                    lineName: currentLine().name,
+                    station: clip.station,
+                    cddVideo: clip.cddVideo
+                }));
+            } catch { }
+        }
+        function restoreLastStation() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(lastStationStorageKey));
+                if (!saved) return false;
+                const restoredLineIndex = lines.findIndex((line) => line.name === saved.lineName);
+                const stations = lines[restoredLineIndex]?.stations;
+                const restoredStopIndex = stations?.findIndex((clip) => clip.station === saved.station && clip.cddVideo === saved.cddVideo) ?? -1;
+                if (restoredStopIndex < 0) return false;
+                lineIndex = restoredLineIndex;
+                stopIndex = restoredStopIndex;
+                selectedScenario = lineIndex;
+                selectedPreset = stopIndex % 3;
+                hasPressedStationForward = true;
+                return true;
+            } catch {
+                return false;
+            }
+        }
         function render(message) {
-            $("routeLine").textContent = currentLine().code;
-            $("routeCode").textContent = `${isReverse ? "S/N" : "N/S"}: 2012A`;
+            // $("routeLine").textContent = currentLine().code;
+            // $("routeCode").textContent = `${isReverse ? "S/N" : "N/S"}: 2012A`;
             $("lcdRoute").textContent = activeClip === doorsClosingPair ? ">> Doors Closing" : activeClip ? `>> ${currentLine().code} · ${currentLine().name}` : "Ready...";
-            const isArrival = activeClip === arrivingPair || activeClip === arrivedPair;
-            $("lcdStation").textContent = activeClip && activeClip !== doorsClosingPair ? `${activeClip === arrivedPair ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
-            $("lcdDistance").textContent = activeClip && activeClip !== doorsClosingPair && activeClip !== arrivedPair ? `Destination: ${activeClip.destination}` : "";
+            const isArrival = activeClip === bbtArrivingPair || activeClip === bbtArrivedPair;
+            $("lcdStation").textContent = activeClip && activeClip !== doorsClosingPair ? `${activeClip === bbtArrivedPair ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
+            $("lcdDistance").textContent = activeClip && activeClip !== doorsClosingPair && activeClip !== bbtArrivedPair ? `Destination: ${activeClip.destination}` : "";
             $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
             $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
             $("inUseLight").classList.toggle("on", isRunning);
             $("activeLight").classList.toggle("on", isRunning);
             $("dcLight").classList.toggle("blue", isRunning && activeClip === doorsClosingPair);
             $("linkLight").classList.toggle("green", !isRunning);
-            $("doorIndicator").textContent = isRunning && activeClip === doorsClosingPair ? "CLOSING" : isRunning ? "ARRIVED" : "CLOSED";
             $("doorsClosingButton").classList.toggle("active", isRunning && activeClip === doorsClosingPair);
             $("doorsClosingButton").setAttribute("aria-pressed", String(isRunning && activeClip === doorsClosingPair));
-            $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === arrivingPair || activeClip === arrivedPair)));
+            $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === bbtArrivingPair || activeClip === bbtArrivedPair)));
             $("arrivedButton").disabled = !hasPressedStationForward;
             $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Press STN Forward first";
             $("directionLever").classList.toggle("reverse", isReverse);
@@ -1031,7 +1044,7 @@
         function stopPlayback(message = "Playback stopped · ready", clearClip = false) {
             playbackGeneration += 1;
             isRunning = false;
-            [$ ("cddVideo"), $("cldVideo")].forEach((video) => {
+            [$("cddVideo"), $("cldVideo")].forEach((video) => {
                 video.pause();
                 if (video.readyState > 0) video.currentTime = 0;
             });
@@ -1065,6 +1078,7 @@
             const generation = playbackGeneration;
             activeClip = clip;
             isRunning = true;
+            rememberLastStation(clip);
             const cddVideo = $("cddVideo");
             const cldVideo = $("cldVideo");
             if (options.nextPair) {
@@ -1092,12 +1106,22 @@
                 const audio = $("announcementAudio");
                 audio.src = new URL(clip.announcement, document.baseURI).href;
                 audio.load();
-                audio.play().catch(() => {});
+                audio.play().catch(() => { });
             }
             render(message || `Playing ${clip.station} · to ${clip.destination}`);
         }
-        $("stationUp").addEventListener("click", () => { hasPressedStationForward = true; lineIndex = 0; stopIndex = 0; selectedPreset = 0; playClip(marinaSouthPair, "Station forward · Bukit Batok to Marina South Pier"); });
-        $("stationDown").addEventListener("click", () => { hasPressedStationForward = false; lineIndex = 0; stopIndex = 0; selectedPreset = 0; playClip(marinaSouthPair, "Station backward · next station: Bukit Batok"); });
+        function moveStation(step) {
+            const stations = currentLine().stations;
+            if (!stations.length) return;
+            const baseIndex = stopIndex < 0 ? (step > 0 ? -1 : 0) : stopIndex;
+            stopIndex = (baseIndex + step + stations.length) % stations.length;
+            selectedPreset = stopIndex % 3;
+            const clip = currentClip();
+            const direction = step > 0 ? "forward" : "backward";
+            playClip(clip, `Station ${direction} · ${clip.station} to ${clip.destination}`);
+        }
+        $("stationUp").addEventListener("click", () => { hasPressedStationForward = true; moveStation(1); });
+        $("stationDown").addEventListener("click", () => { hasPressedStationForward = false; moveStation(-1); });
         $("routePrevious").addEventListener("click", () => { lineIndex = (lineIndex + lines.length - 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
         $("routeNext").addEventListener("click", () => { lineIndex = (lineIndex + 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
         $("resetButton").addEventListener("click", () => { hasPressedStationForward = false; lineIndex = 0; stopIndex = -1; selectedScenario = 0; selectedPreset = 0; isReverse = false; isMaintenance = false; stopPlayback("Reset · videos stopped", true); });
@@ -1105,7 +1129,7 @@
         $("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair, "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
         $("arrivedButton").addEventListener("click", () => {
             if (!hasPressedStationForward) return;
-            playClip(arrivingPair, "Arriving · Bukit Batok", { cddLoop: false, cldLoop: false, nextPair: arrivedPair });
+            playClip(bbtArrivingPair, "Arriving · Bukit Batok", { cddLoop: false, cldLoop: false, nextPair: bbtArrivedPair });
         });
         $("directionLever").addEventListener("click", () => { isReverse = !isReverse; lineIndex = isReverse ? 1 : 0; stopIndex = 0; playClip(currentClip(), `Direction set · ${isReverse ? "Southbound" : "Northbound"}`); });
         document.querySelectorAll(".scenario-button").forEach((button) => button.addEventListener("click", () => {
@@ -1125,7 +1149,12 @@
             URL.revokeObjectURL(link.href);
             render("Service readout downloaded");
         });
-        render();
+        if (restoreLastStation()) {
+            const lastStation = currentClip();
+            playClip(lastStation, `Restored station · ${lastStation.station}`);
+        } else {
+            render();
+        }
     </script>
 </body>
 
