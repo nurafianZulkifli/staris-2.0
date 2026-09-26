@@ -167,18 +167,24 @@ function playClip(clip, message, options = {}) {
             if (generation !== playbackGeneration) return;
             playClip(options.nextPair, "Arrived · Bukit Batok");
         };
+        const isArrivalLoop = /-arr(?:\.mp4)?$/i.test(clip["screen-r"] || "") || /-arr(?:\.mp4)?$/i.test(clip["screen-l"] || "") || /-arr(?:\.mp4)?$/i.test(clip.vfd || "");
         if (clip.announcement) {
             const audio = $("announcementAudio");
             audio.addEventListener("ended", () => {
                 if (generation !== playbackGeneration) return;
                 announcementFinished = true;
-                if (clip === bbtArrivingPair || endedVideos === 2) triggerNextPair();
+                if (isArrivalLoop) {
+                    triggerNextPair();
+                    return;
+                }
+                if (endedVideos === 2) triggerNextPair();
             }, { once: true });
         }
         [screenL, screenR].forEach((video) => video.addEventListener("ended", () => {
             if (generation !== playbackGeneration) return;
             endedVideos += 1;
-            if (endedVideos === 2 && (!clip.announcement || announcementFinished || clip === bbtArrivingPair)) triggerNextPair();
+            if (isArrivalLoop) return;
+            if (endedVideos === 2 && (!clip.announcement || announcementFinished)) triggerNextPair();
         }, { once: true }));
     }
     if (options.stopOnComplete) {
@@ -192,29 +198,37 @@ function playClip(clip, message, options = {}) {
             }
         }, { once: true }));
     }
-    const shouldLoopArrivalScreen = clip === bbtArrivingPair && !!clip.announcement;
-    loadVideo(screenL, $("cddScreen"), clip["screen-l"], options.cddLoop ?? true, generation);
-    loadVideo(screenR, $("cldScreen"), clip["screen-r"], shouldLoopArrivalScreen ? true : (options.cldLoop ?? true), generation);
+    const isArrivingClip = /-arr(?:\.mp4)?$/i.test(clip["screen-r"] || "") || /-arr(?:\.mp4)?$/i.test(clip["screen-l"] || "") || /-arr(?:\.mp4)?$/i.test(clip.vfd || "");
+    const hasNextRightScreen = Boolean(clip["screen-r2"]);
+    const shouldLoopArrivalScreen = isArrivingClip && !!clip.announcement;
+    loadVideo(screenL, $("cddScreen"), clip["screen-l"], shouldLoopArrivalScreen ? true : (options.cddLoop ?? true), generation);
+    loadVideo(screenR, $("cldScreen"), clip["screen-r"], shouldLoopArrivalScreen ? true : hasNextRightScreen ? false : (options.cldLoop ?? true), generation);
+    if (hasNextRightScreen) {
+        screenR.addEventListener("ended", () => {
+            if (generation !== playbackGeneration) return;
+            loadVideo(screenR, $("cldScreen"), clip["screen-r2"], false, generation);
+        }, { once: true });
+    }
     if (vfdVideo && clip.vfd) {
         const isDoorsClosing = clip === doorsClosingPair;
-        const isArriving = clip === bbtArrivingPair;
-        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, isDoorsClosing ? false : isArriving ? true : true, generation);
-        if (isArriving && clip.announcement) {
-            const audio = $("announcementAudio");
-            audio.addEventListener("ended", () => {
-                if (generation !== playbackGeneration) return;
-                vfdVideo.pause();
-                if (vfdVideo.readyState > 0) vfdVideo.currentTime = 0;
-                screenR.pause();
-                if (screenR.readyState > 0) screenR.currentTime = 0;
-            }, { once: true });
-        }
+        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, isDoorsClosing ? false : shouldLoopArrivalScreen ? true : true, generation);
     }
     if (clip.announcement) {
         const audio = $("announcementAudio");
         audio.src = new URL(clip.announcement, document.baseURI).href;
         audio.load();
         audio.play().catch(() => { });
+        if (shouldLoopArrivalScreen) {
+            audio.addEventListener("ended", () => {
+                if (generation !== playbackGeneration) return;
+                [screenL, screenR, vfdVideo].forEach((video) => {
+                    if (!video) return;
+                    video.loop = false;
+                    video.pause();
+                    if (video.readyState > 0) video.currentTime = 0;
+                });
+            }, { once: true });
+        }
     }
     render(message || `Playing ${clip.station} · to ${clip.destination}`);
 }
