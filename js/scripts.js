@@ -3,6 +3,7 @@ let bbtNxtPair;
 let bbtArrivingPair;
 let bbtArrivedPair;
 let doorsClosingPair;
+let maintenancePair;
 let lines = [];
 fetch("js/transit-data.json")
     .then((response) => response.json())
@@ -13,6 +14,7 @@ fetch("js/transit-data.json")
         bbtArrivingPair = pairs.bbtArrivingPair;
         bbtArrivedPair = pairs.bbtArrivedPair;
         doorsClosingPair = pairs.doorsClosingPair;
+            maintenancePair = pairs.maintenancePair;
         lines = data.lines.map((line) => ({
             ...line,
             stations: line.stations.map((name) => pairs[name])
@@ -86,10 +88,11 @@ function render(message) {
         vfd.pause();
         if (vfd.readyState > 0) vfd.currentTime = 0;
     }
-    $("lcdRoute").textContent = activeClip === doorsClosingPair ? "→ Doors Closing" : activeClip ? `→ ${currentLine().code} · ${currentLine().name}` : "Ready...";
+    const isMaintenanceClip = activeClip === maintenancePair;
+    $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : activeClip === doorsClosingPair ? "→ Doors Closing" : activeClip ? `→ ${currentLine().code} · ${currentLine().name}` : "Ready...";
     const isArrival = activeClip === bbtArrivingPair || activeClip === bbtArrivedPair;
-    $("lcdStation").textContent = activeClip && activeClip !== doorsClosingPair ? `${activeClip === bbtArrivedPair ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
-    $("lcdDistance").textContent = activeClip && activeClip !== doorsClosingPair && activeClip !== bbtArrivedPair ? `Destination: ${activeClip.destination}` : "";
+    $("lcdStation").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair ? `${activeClip === bbtArrivedPair ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
+    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair && activeClip !== bbtArrivedPair ? `Destination: ${activeClip.destination}` : "";
     $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
     $("inUseLight").classList.toggle("on", isRunning);
@@ -115,6 +118,8 @@ function stopPlayback(message = "Playback stopped · ready", clearClip = false) 
         if (!video) return;
         video.pause();
         if (video.readyState > 0) video.currentTime = 0;
+        video.removeAttribute("src");
+        video.load();
     });
     const audio = $("announcementAudio");
     audio.pause();
@@ -126,6 +131,7 @@ function stopPlayback(message = "Playback stopped · ready", clearClip = false) 
     render(message);
 }
 function loadVideo(video, screen, path, loop, generation) {
+    if (!path) return;
     const source = new URL(path, document.baseURI).href;
     video.loop = loop;
     video.muted = false;
@@ -247,7 +253,14 @@ $("stationDown").addEventListener("click", () => { hasPressedStationForward = fa
 $("routePrevious").addEventListener("click", () => { lineIndex = (lineIndex + lines.length - 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("routeNext").addEventListener("click", () => { lineIndex = (lineIndex + 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("resetButton").addEventListener("click", () => { hasPressedStationForward = false; lineIndex = 0; stopIndex = -1; selectedScenario = 0; selectedPreset = 0; isReverse = false; isMaintenance = false; stopPlayback("Reset · videos stopped", true); });
-$("modeButton").addEventListener("click", () => { isMaintenance = !isMaintenance; render(isMaintenance ? "Maintenance mode · announcements inhibited" : "Normal service · announcements enabled"); });
+$("modeButton").addEventListener("click", () => {
+    isMaintenance = !isMaintenance;
+    if (isMaintenance) {
+        playClip(maintenancePair, "Maintenance mode · vfd & screen test");
+    } else {
+        stopPlayback("Normal service · announcements enabled", true);
+    }
+});
 $("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair, "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
 $("arrivedButton").addEventListener("click", () => {
     if (!hasPressedStationForward) return;
