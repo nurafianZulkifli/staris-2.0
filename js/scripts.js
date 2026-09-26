@@ -172,13 +172,13 @@ function playClip(clip, message, options = {}) {
             audio.addEventListener("ended", () => {
                 if (generation !== playbackGeneration) return;
                 announcementFinished = true;
-                if (endedVideos === 2) triggerNextPair();
+                if (clip === bbtArrivingPair || endedVideos === 2) triggerNextPair();
             }, { once: true });
         }
         [screenL, screenR].forEach((video) => video.addEventListener("ended", () => {
             if (generation !== playbackGeneration) return;
             endedVideos += 1;
-            if (endedVideos === 2 && (!clip.announcement || announcementFinished)) triggerNextPair();
+            if (endedVideos === 2 && (!clip.announcement || announcementFinished || clip === bbtArrivingPair)) triggerNextPair();
         }, { once: true }));
     }
     if (options.stopOnComplete) {
@@ -192,10 +192,23 @@ function playClip(clip, message, options = {}) {
             }
         }, { once: true }));
     }
+    const shouldLoopArrivalScreen = clip === bbtArrivingPair && !!clip.announcement;
     loadVideo(screenL, $("cddScreen"), clip["screen-l"], options.cddLoop ?? true, generation);
-    loadVideo(screenR, $("cldScreen"), clip["screen-r"], options.cldLoop ?? true, generation);
+    loadVideo(screenR, $("cldScreen"), clip["screen-r"], shouldLoopArrivalScreen ? true : (options.cldLoop ?? true), generation);
     if (vfdVideo && clip.vfd) {
-        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, true, generation);
+        const isDoorsClosing = clip === doorsClosingPair;
+        const isArriving = clip === bbtArrivingPair;
+        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, isDoorsClosing ? false : isArriving ? true : true, generation);
+        if (isArriving && clip.announcement) {
+            const audio = $("announcementAudio");
+            audio.addEventListener("ended", () => {
+                if (generation !== playbackGeneration) return;
+                vfdVideo.pause();
+                if (vfdVideo.readyState > 0) vfdVideo.currentTime = 0;
+                screenR.pause();
+                if (screenR.readyState > 0) screenR.currentTime = 0;
+            }, { once: true });
+        }
     }
     if (clip.announcement) {
         const audio = $("announcementAudio");
@@ -224,7 +237,7 @@ $("modeButton").addEventListener("click", () => { isMaintenance = !isMaintenance
 $("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair, "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
 $("arrivedButton").addEventListener("click", () => {
     if (!hasPressedStationForward) return;
-    playClip(bbtArrivingPair, "Arriving · Bukit Batok", { cddLoop: false, cldLoop: false, nextPair: bbtArrivedPair });
+    playClip(bbtArrivingPair, "Arriving · Bukit Batok", { cddLoop: false, cldLoop: true, nextPair: bbtArrivedPair });
 });
 $("directionLever").addEventListener("click", () => { isReverse = !isReverse; lineIndex = isReverse ? 1 : 0; stopIndex = 0; playClip(currentClip(), `Direction set · ${isReverse ? "Southbound" : "Northbound"}`); });
 document.querySelectorAll(".scenario-button").forEach((button) => button.addEventListener("click", () => {

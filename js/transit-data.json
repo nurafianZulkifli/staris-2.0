@@ -34,7 +34,7 @@
       "screen-l": "assets/nsl/dc-1.mp4",
       "screen-r": "assets/nsl/dc-2.mp4",
       "announcement": "assets/announcements/dc-ann.wav",
-      "vfd": "assets/nsl/dc-2.mp4"
+      "vfd": "assets/nsl/vfd/dc.mp4"
     }
   },
   "lines": [
