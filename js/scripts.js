@@ -1,6 +1,7 @@
 let pairs = {};
 let lines = [];
 let activeVfdPath = null;
+let pendingAnnouncement = null;
 fetch("js/transit-data.json")
     .then((response) => response.json())
     .then((data) => {
@@ -128,6 +129,7 @@ function render(message) {
 }
 function stopPlayback(message = "Playback stopped · ready", clearClip = false) {
     playbackGeneration += 1;
+    pendingAnnouncement = null;
     isRunning = false;
     [$("screen-l"), $("screen-r"), $("vfdVideo")].forEach((video) => {
         if (!video) return;
@@ -251,7 +253,13 @@ function playClip(clip, message, options = {}) {
         const audio = $("announcementAudio");
         audio.src = new URL(clip.announcement, document.baseURI).href;
         audio.load();
-        audio.play().catch(() => { });
+        audio.play().then(() => {
+            if (generation === playbackGeneration) pendingAnnouncement = null;
+        }).catch((error) => {
+            if (error.name === "NotAllowedError" && generation === playbackGeneration) {
+                pendingAnnouncement = { generation, source: audio.src };
+            }
+        });
     }
     render(message || `Playing ${clip.station} · to ${clip.destination}`);
 }
@@ -269,7 +277,12 @@ function moveStation(step) {
         : `Station ${direction} · ${clip.station} to ${clip.destination}`;
     playClip(clip, statusMessage);
 }
-$("stationUp").addEventListener("click", () => { hasPressedStationForward = true; moveStation(1); });
+$("stationUp").addEventListener("click", () => {
+    hasPressedStationForward = true;
+    const previousStopIndex = stopIndex;
+    moveStation(1);
+    if (stopIndex === previousStopIndex) render();
+});
 $("stationDown").addEventListener("click", () => moveStation(-1));
 $("routePrevious").addEventListener("click", () => { lineIndex = (lineIndex + lines.length - 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("routeNext").addEventListener("click", () => { lineIndex = (lineIndex + 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
@@ -319,4 +332,16 @@ $("downloadButton").addEventListener("click", () => {
     link.click();
     URL.revokeObjectURL(link.href);
     render("Service readout downloaded");
+});
+document.addEventListener("click", () => {
+    const pending = pendingAnnouncement;
+    if (!pending) return;
+    const audio = $("announcementAudio");
+    if (pending.generation !== playbackGeneration || audio.src !== pending.source) {
+        pendingAnnouncement = null;
+        return;
+    }
+    audio.play().then(() => {
+        if (pendingAnnouncement === pending) pendingAnnouncement = null;
+    }).catch(() => { });
 });
