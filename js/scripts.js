@@ -117,7 +117,7 @@ function render(message) {
     $("doorsClosingButton").setAttribute("aria-pressed", String(isRunning && activeClip === doorsClosingPair));
     $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrivingPair || activeClip === bgbArrivedPair)));
     $("arrivedButton").disabled = !hasPressedStationForward;
-    $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Press STN Forward first";
+    $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Select a station first";
     $("directionLever").classList.toggle("reverse", isReverse);
     $("directionLever").setAttribute("aria-pressed", String(isReverse));
     document.querySelectorAll(".scenario-button").forEach((button) => {
@@ -264,7 +264,7 @@ function moveStation(step) {
     playClip(clip, `Station ${direction} · ${clip.station} to ${clip.destination}`);
 }
 $("stationUp").addEventListener("click", () => { hasPressedStationForward = true; moveStation(1); });
-$("stationDown").addEventListener("click", () => { hasPressedStationForward = false; moveStation(-1); });
+$("stationDown").addEventListener("click", () => { hasPressedStationForward = true; moveStation(-1); });
 $("routePrevious").addEventListener("click", () => { lineIndex = (lineIndex + lines.length - 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("routeNext").addEventListener("click", () => { lineIndex = (lineIndex + 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("resetButton").addEventListener("click", () => { hasPressedStationForward = false; lineIndex = 0; stopIndex = -1; selectedScenario = 0; selectedPreset = 0; isReverse = false; isMaintenance = false; stopPlayback("Reset · videos stopped", true); });
