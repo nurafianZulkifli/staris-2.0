@@ -69,7 +69,7 @@
 
     "jurDNxtPair": {
       "station": "JURD",
-      "destination": "JUR",
+      "destination": "JURD",
       "screen-l": "assets/nsl/jurD-nxt.mp4",
       "screen-r": "assets/nsl/ld-jur-trunc.mp4",
       "screen-r2": "assets/nsl/ad-nxt.mp4",
