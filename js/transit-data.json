@@ -31,35 +31,75 @@
       "screen-r": "assets/nsl/ld-msp.mp4",
       "vfd": "assets/nsl/vfd/bbt-arrd.mp4"
     },
+    
+    "bgbNxtPair": {
+      "station": "BGB",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/bgb-nxt.mp4",
+      "screen-r": "assets/nsl/ld-msp-trunc.mp4",
+      "screen-r2": "assets/nsl/ad-nxt.mp4",
+      "vfd": "assets/nsl/vfd/bgb-nxt.mp4",
+      "announcement": "assets/announcements/bgb-nxt.wav"
+    },
+    "bgbArrivingPair": {
+      "station": "BGB",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/bgb-arr.mp4",
+      "screen-r": "assets/nsl/ad-arr.mp4",
+      "vfd": "assets/nsl/vfd/bgb-arr.mp4",
+      "announcement": "assets/announcements/bgb-arr.wav"
+    },
+    "bgbArrivedPair": {
+      "station": "BGB",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/bgb-arrd.mp4",
+      "screen-r": "assets/nsl/ld-msp.mp4",
+      "vfd": "assets/nsl/vfd/bgb-arrd.mp4"
+    },
+
+
+
+
+
+
     "doorsClosingPair": {
       "screen-l": "assets/nsl/dc-1.mp4",
       "screen-r": "assets/nsl/dc-2.mp4",
       "announcement": "assets/announcements/dc-ann.wav",
       "vfd": "assets/nsl/vfd/dc.mp4"
-      },
-      "maintenancePair": {
-        "station": "MAINTENANCE",
-        "destination": "SYSTEM",
-        "screen-l": "assets/nsl/maintenance-s1.mp4",
-        "screen-r": "assets/nsl/maintenance-s2.mp4",
-        "vfd": "assets/nsl/vfd/maintenance.mp4"
+    },
+    "maintenancePair": {
+      "station": "MAINTENANCE",
+      "destination": "SYSTEM",
+      "screen-l": "assets/nsl/maintenance-s1.mp4",
+      "screen-r": "assets/nsl/maintenance-s2.mp4",
+      "vfd": "assets/nsl/vfd/maintenance.mp4"
     }
   },
   "lines": [
     {
       "code": "NSL",
       "name": "TO MSP",
-      "stations": ["bbtNxtPair"]
+      "stations": [
+        "bbtNxtPair",
+        "bgbNxtPair"
+      ]
     },
     {
       "code": "EWL",
       "name": "TO JUR",
-      "stations": ["jurArrPair"]
+      "stations": [
+        "jurArrPair"
+      ]
     },
     {
       "code": "MSG",
       "name": "MSG",
-      "stations": ["bbtNxtPair", "jurArrPair", "bbtNxtPair"]
+      "stations": [
+        "bbtNxtPair",
+        "jurArrPair",
+        "bbtNxtPair"
+      ]
     }
   ]
 }

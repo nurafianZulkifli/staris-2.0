@@ -2,6 +2,9 @@ let jurArrPair;
 let bbtNxtPair;
 let bbtArrivingPair;
 let bbtArrivedPair;
+let bgbNxtPair;
+let bgbArrivingPair;
+let bgbArrivedPair;
 let doorsClosingPair;
 let maintenancePair;
 let lines = [];
@@ -13,16 +16,26 @@ fetch("js/transit-data.json")
         bbtNxtPair = pairs.bbtNxtPair;
         bbtArrivingPair = pairs.bbtArrivingPair;
         bbtArrivedPair = pairs.bbtArrivedPair;
+        bgbNxtPair = pairs.bgbNxtPair;
+        bgbArrivingPair = pairs.bgbArrivingPair;
+        bgbArrivedPair = pairs.bgbArrivedPair;
         doorsClosingPair = pairs.doorsClosingPair;
             maintenancePair = pairs.maintenancePair;
         lines = data.lines.map((line) => ({
             ...line,
             stations: line.stations.map((name) => pairs[name])
         }));
-        if (restoreLastStation()) {
+        const navigationEntry = performance.getEntriesByType("navigation")[0];
+        const isRefresh = navigationEntry ? navigationEntry.type === "reload" : performance.navigation?.type === 1;
+        if (isRefresh && restoreLastStation()) {
             const lastStation = currentClip();
             playClip(lastStation, `Restored station · ${lastStation.station}`);
         } else {
+            if (!isRefresh) {
+                try {
+                    localStorage.removeItem(lastStationStorageKey);
+                } catch { }
+            }
             render();
         }
     })
@@ -90,9 +103,10 @@ function render(message) {
     }
     const isMaintenanceClip = activeClip === maintenancePair;
     $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : activeClip === doorsClosingPair ? "→ Doors Closing" : activeClip ? `→ ${currentLine().code} · ${currentLine().name}` : "Ready...";
-    const isArrival = activeClip === bbtArrivingPair || activeClip === bbtArrivedPair;
-    $("lcdStation").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair ? `${activeClip === bbtArrivedPair ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
-    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair && activeClip !== bbtArrivedPair ? `Destination: ${activeClip.destination}` : "";
+    const isArrivedClip = activeClip === bbtArrivedPair || activeClip === bgbArrivedPair;
+    const isArrival = activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrivingPair || activeClip === bgbArrivedPair;
+    $("lcdStation").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
+    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
     $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
     $("inUseLight").classList.toggle("on", isRunning);
@@ -101,7 +115,7 @@ function render(message) {
     $("linkLight").classList.toggle("green", !isRunning);
     $("doorsClosingButton").classList.toggle("active", isRunning && activeClip === doorsClosingPair);
     $("doorsClosingButton").setAttribute("aria-pressed", String(isRunning && activeClip === doorsClosingPair));
-    $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === bbtArrivingPair || activeClip === bbtArrivedPair)));
+    $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrivingPair || activeClip === bgbArrivedPair)));
     $("arrivedButton").disabled = !hasPressedStationForward;
     $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Press STN Forward first";
     $("directionLever").classList.toggle("reverse", isReverse);
@@ -212,7 +226,7 @@ function playClip(clip, message, options = {}) {
     if (hasNextRightScreen) {
         screenR.addEventListener("ended", () => {
             if (generation !== playbackGeneration) return;
-            loadVideo(screenR, $("cldScreen"), clip["screen-r2"], false, generation);
+            loadVideo(screenR, $("cldScreen"), clip["screen-r2"], true, generation);
         }, { once: true });
     }
     if (vfdVideo && clip.vfd) {
@@ -242,6 +256,7 @@ function moveStation(step) {
     const stations = currentLine().stations;
     if (!stations.length) return;
     const baseIndex = stopIndex < 0 ? (step > 0 ? -1 : 0) : stopIndex;
+    if (step > 0 && baseIndex >= stations.length - 1) return;
     stopIndex = (baseIndex + step + stations.length) % stations.length;
     selectedPreset = stopIndex % 3;
     const clip = currentClip();
@@ -264,7 +279,11 @@ $("modeButton").addEventListener("click", () => {
 $("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair, "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
 $("arrivedButton").addEventListener("click", () => {
     if (!hasPressedStationForward) return;
-    playClip(bbtArrivingPair, "Arriving · Bukit Batok", { cddLoop: false, cldLoop: true, nextPair: bbtArrivedPair });
+    const stationClip = currentClip();
+    const isBgbStation = stationClip.station === "BGB";
+    const arrivingPair = isBgbStation ? bgbArrivingPair : bbtArrivingPair;
+    const arrivedPair = isBgbStation ? bgbArrivedPair : bbtArrivedPair;
+    playClip(arrivingPair, `Arriving · ${stationClip.station}`, { cddLoop: false, cldLoop: true, nextPair: arrivedPair });
 });
 $("directionLever").addEventListener("click", () => { isReverse = !isReverse; lineIndex = isReverse ? 1 : 0; stopIndex = 0; playClip(currentClip(), `Direction set · ${isReverse ? "Southbound" : "Northbound"}`); });
 document.querySelectorAll(".scenario-button").forEach((button) => button.addEventListener("click", () => {

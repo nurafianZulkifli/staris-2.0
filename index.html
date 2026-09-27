@@ -18,19 +18,16 @@
     <main class="workbench">
         <section class="video-deck" aria-label="Train CDD and CLD video displays">
             <div class="video-screen" id="cddScreen">
-                <!-- <span class="video-screen-label">CDD · CAB DISPLAY</span> -->
-                <span class="video-screen-placeholder">CDD · STANDBY</span>
+                <span class="video-screen-placeholder">Screen L · STANDBY</span>
                 <video id="screen-l" aria-label="Cab display video" playsinline preload="none"></video>
             </div>
             <div class="video-screen" id="cldScreen">
-                <!-- <span class="video-screen-label" id="cldLabel">CLD · LINE DISPLAY</span> -->
-                <span class="video-screen-placeholder">CLD · STANDBY</span>
+                <span class="video-screen-placeholder">Screen R · STANDBY</span>
                 <video id="screen-r" aria-label="Line display video" playsinline preload="none"></video>
             </div>
             <audio id="announcementAudio" preload="none"></audio>
         </section>
         <div class="vfd-panel" id="vfdPanel" aria-live="polite" aria-label="Vehicle display panel">
-            <span class="vfd-label">VFD</span>
             <span class="vfd-placeholder">VFD · STANDBY</span>
             <video id="vfdVideo" aria-label="Vehicle display video" playsinline preload="none"></video>
         </div>
