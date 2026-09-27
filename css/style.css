@@ -71,6 +71,53 @@ button {
     object-fit: contain;
 }
 
+.ad-audio-toggle {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #73817e;
+    border-radius: 3px;
+    background: #111c;
+    color: #e4efec;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease, visibility .15s ease;
+    cursor: pointer;
+}
+
+.video-screen.has-ad-audio:hover .ad-audio-toggle,
+.video-screen.has-ad-audio:focus-within .ad-audio-toggle {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.video-screen:not(.has-ad-audio) .ad-audio-toggle {
+    display: none;
+}
+
+.ad-audio-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.ad-audio-toggle[aria-pressed="true"] .audio-waves,
+.ad-audio-toggle:not([aria-pressed="true"]) .audio-muted {
+    display: none;
+}
+
+.ad-audio-toggle[aria-pressed="true"] {
+    border-color: #35d9bd;
+    color: #8fffe9;
+}
+
 .video-screen-label,
 .video-screen-placeholder {
     position: absolute;

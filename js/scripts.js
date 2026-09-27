@@ -2,6 +2,7 @@ let pairs = {};
 let lines = [];
 let activeVfdPath = null;
 let pendingAnnouncement = null;
+let adAudioMuted = false;
 fetch("js/transit-data.json")
     .then((response) => response.json())
     .then((data) => {
@@ -43,6 +44,19 @@ let playbackGeneration = 0;
 let hasPressedStationForward = false;
 const lastStationStorageKey = "nsl-transit-last-station";
 const $ = (id) => document.getElementById(id);
+function isAdAudioPath(path) {
+    return /(?:^|\/)ad-(?:arr|nxt)\.mp4(?:$|[?#])/i.test(path || "");
+}
+function updateAdAudioButton(path) {
+    const button = $("adAudioToggle");
+    if (!button) return;
+    const isAd = isAdAudioPath(path);
+    $("cldScreen").classList.toggle("has-ad-audio", isAd);
+    button.disabled = !isAd;
+    button.setAttribute("aria-label", adAudioMuted ? "Unmute advertisement audio" : "Mute advertisement audio");
+    button.title = adAudioMuted ? "Unmute advertisement audio" : "Mute advertisement audio";
+    button.setAttribute("aria-pressed", String(adAudioMuted));
+}
 const currentLine = () => lines[lineIndex];
 const currentPreset = () => currentLine().presets[selectedPreset];
 const currentStations = () => currentPreset().stations;
@@ -139,6 +153,7 @@ function stopPlayback(message = "Playback stopped · ready", clearClip = false) 
         video.load();
     });
     activeVfdPath = null;
+    updateAdAudioButton(null);
     const audio = $("announcementAudio");
     audio.pause();
     if (audio.readyState > 0) audio.currentTime = 0;
@@ -152,7 +167,9 @@ function loadVideo(video, screen, path, loop, generation) {
     if (!path) return;
     const source = new URL(path, document.baseURI).href;
     video.loop = loop;
-    video.muted = false;
+    const isAdAudio = video.id === "screen-r" && isAdAudioPath(path);
+    video.muted = isAdAudio && adAudioMuted;
+    if (video.id === "screen-r") updateAdAudioButton(path);
     if (video.src !== source) {
         video.src = source;
         video.load();
@@ -321,7 +338,7 @@ document.querySelectorAll(".scenario-button").forEach((button) => button.addEven
     lineIndex = selectedScenario;
     selectedPreset = Number(button.dataset.preset);
     stopIndex = 0;
-    hasPressedStationForward = false;
+    hasPressedStationForward = Boolean(currentClip().arrival?.approaching);
     const selectionDetail = currentLine().code === "MSG" ? ` · ${currentClip().station}` : "";
     playClip(currentClip(), `${currentLine().name} · ${currentPreset().name}${selectionDetail}`);
 }));
@@ -333,6 +350,13 @@ $("downloadButton").addEventListener("click", () => {
     link.click();
     URL.revokeObjectURL(link.href);
     render("Service readout downloaded");
+});
+$("adAudioToggle").addEventListener("click", (event) => {
+    event.stopPropagation();
+    adAudioMuted = !adAudioMuted;
+    const video = $("screen-r");
+    video.muted = adAudioMuted;
+    updateAdAudioButton(video.currentSrc || video.src);
 });
 document.addEventListener("click", () => {
     const pending = pendingAnnouncement;
