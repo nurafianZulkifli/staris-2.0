@@ -1,26 +1,10 @@
-let jurArrPair;
-let bbtNxtPair;
-let bbtArrivingPair;
-let bbtArrivedPair;
-let bgbNxtPair;
-let bgbArrPair;
-let bgbArrivedPair;
-let doorsClosingPair;
-let maintenancePair;
+let pairs = {};
 let lines = [];
+let activeVfdPath = null;
 fetch("js/transit-data.json")
     .then((response) => response.json())
     .then((data) => {
-        const pairs = data.pairs;
-        jurArrPair = pairs.jurArrPair;
-        bbtNxtPair = pairs.bbtNxtPair;
-        bbtArrivingPair = pairs.bbtArrivingPair;
-        bbtArrivedPair = pairs.bbtArrivedPair;
-        bgbNxtPair = pairs.bgbNxtPair;
-        bgbArrPair = pairs.bgbArrPair;
-        bgbArrivedPair = pairs.bgbArrivedPair;
-        doorsClosingPair = pairs.doorsClosingPair;
-        maintenancePair = pairs.maintenancePair;
+        pairs = data.pairs;
         lines = data.lines.map((line) => ({
             ...line,
             presets: line.presets.map((preset) => ({
@@ -101,8 +85,8 @@ function render(message) {
     // $("routeLine").textContent = currentLine().code;
     // $("routeCode").textContent = `${isReverse ? "S/N" : "N/S"}: 2012A`;
     const vfd = $("vfdVideo");
-    if (vfd && activeClip && activeClip.vfd) {
-        const vfdSource = new URL(activeClip.vfd, document.baseURI).href;
+    if (vfd && activeVfdPath) {
+        const vfdSource = new URL(activeVfdPath, document.baseURI).href;
         if (vfd.src !== vfdSource) {
             vfd.src = vfdSource;
             vfd.load();
@@ -112,22 +96,23 @@ function render(message) {
         vfd.pause();
         if (vfd.readyState > 0) vfd.currentTime = 0;
     }
-    const isMaintenanceClip = activeClip === maintenancePair;
+    const isMaintenanceClip = activeClip === pairs.maintenancePair;
     const isMessageClip = currentLine()?.code === "MSG" && currentStations().includes(activeClip);
-    $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : activeClip === doorsClosingPair ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
-    const isArrivedClip = activeClip === bbtArrivedPair || activeClip === bgbArrivedPair;
-    const isArrival = activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrPair || activeClip === bgbArrivedPair;
-    $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && activeClip !== doorsClosingPair ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
-    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && !isMessageClip && activeClip !== doorsClosingPair && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
+    const isDoorsClosingClip = activeClip === pairs.doorsClosingPair;
+    $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : isDoorsClosingClip ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
+    const isArrivedClip = activeClip?.displayState === "arrived";
+    const isArrival = activeClip?.displayState === "approaching" || isArrivedClip;
+    $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
+    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
     $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
     $("inUseLight").classList.toggle("on", isRunning);
     $("activeLight").classList.toggle("on", isRunning);
-    $("dcLight").classList.toggle("blue", isRunning && activeClip === doorsClosingPair);
+    $("dcLight").classList.toggle("blue", isRunning && isDoorsClosingClip);
     $("linkLight").classList.toggle("green", !isRunning);
-    $("doorsClosingButton").classList.toggle("active", isRunning && activeClip === doorsClosingPair);
-    $("doorsClosingButton").setAttribute("aria-pressed", String(isRunning && activeClip === doorsClosingPair));
-    $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrPair || activeClip === bgbArrivedPair)));
+    $("doorsClosingButton").classList.toggle("active", isRunning && isDoorsClosingClip);
+    $("doorsClosingButton").setAttribute("aria-pressed", String(isRunning && isDoorsClosingClip));
+    $("arrivedButton").setAttribute("aria-pressed", String(isRunning && isArrival));
     $("arrivedButton").disabled = !hasPressedStationForward;
     $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Select a station first";
     $("directionLever").classList.toggle("reverse", isReverse);
@@ -151,6 +136,7 @@ function stopPlayback(message = "Playback stopped · ready", clearClip = false) 
         video.removeAttribute("src");
         video.load();
     });
+    activeVfdPath = null;
     const audio = $("announcementAudio");
     audio.pause();
     if (audio.readyState > 0) audio.currentTime = 0;
@@ -191,6 +177,7 @@ function playClip(clip, message, options = {}) {
     stopPlayback("Loading video pair");
     const generation = playbackGeneration;
     activeClip = clip;
+    activeVfdPath = clip.vfd || null;
     isRunning = true;
     rememberLastStation(clip);
     const screenL = $("screen-l");
@@ -202,9 +189,9 @@ function playClip(clip, message, options = {}) {
         let announcementFinished = false;
         const triggerNextPair = () => {
             if (generation !== playbackGeneration) return;
-            playClip(options.nextPair, "Arrived · Bukit Batok");
+            playClip(options.nextPair, `Arrived · ${options.nextPair.station}`);
         };
-        const isArrivalLoop = /-arr(?:\.mp4)?$/i.test(clip["screen-r"] || "") || /-arr(?:\.mp4)?$/i.test(clip["screen-l"] || "") || /-arr(?:\.mp4)?$/i.test(clip.vfd || "");
+        const isArrivalLoop = clip.displayState === "approaching";
         if (clip.announcement) {
             const audio = $("announcementAudio");
             audio.addEventListener("ended", () => {
@@ -235,7 +222,7 @@ function playClip(clip, message, options = {}) {
             }
         }, { once: true }));
     }
-    const isArrivingClip = /-arr(?:\.mp4)?$/i.test(clip["screen-r"] || "") || /-arr(?:\.mp4)?$/i.test(clip["screen-l"] || "") || /-arr(?:\.mp4)?$/i.test(clip.vfd || "");
+    const isArrivingClip = clip.displayState === "approaching";
     const hasNextRightScreen = Boolean(clip["screen-r2"]);
     const shouldLoopArrivalScreen = !isMessageClip && isArrivingClip && !!clip.announcement;
     const shouldLoopScreenL = isMessageClip ? false : shouldLoopArrivalScreen || (options.cddLoop ?? true);
@@ -249,25 +236,22 @@ function playClip(clip, message, options = {}) {
         }, { once: true });
     }
     if (vfdVideo && clip.vfd) {
-        const isDoorsClosing = clip === doorsClosingPair;
-        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, isDoorsClosing || isMessageClip ? false : true, generation);
+        const isDoorsClosing = clip === pairs.doorsClosingPair;
+        const nextVfdPath = clip["vfd-next"];
+        if (nextVfdPath) {
+            vfdVideo.addEventListener("ended", () => {
+                if (generation !== playbackGeneration) return;
+                activeVfdPath = nextVfdPath;
+                loadVideo(vfdVideo, $("vfdPanel"), nextVfdPath, true, generation);
+            }, { once: true });
+        }
+        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, Boolean(nextVfdPath) || isDoorsClosing || isMessageClip ? false : true, generation);
     }
     if (clip.announcement) {
         const audio = $("announcementAudio");
         audio.src = new URL(clip.announcement, document.baseURI).href;
         audio.load();
         audio.play().catch(() => { });
-        if (shouldLoopArrivalScreen) {
-            audio.addEventListener("ended", () => {
-                if (generation !== playbackGeneration) return;
-                [screenL, screenR, vfdVideo].forEach((video) => {
-                    if (!video) return;
-                    video.loop = false;
-                    video.pause();
-                    if (video.readyState > 0) video.currentTime = 0;
-                });
-            }, { once: true });
-        }
     }
     render(message || `Playing ${clip.station} · to ${clip.destination}`);
 }
@@ -276,7 +260,8 @@ function moveStation(step) {
     if (!stations.length) return;
     const baseIndex = stopIndex < 0 ? (step > 0 ? -1 : 0) : stopIndex;
     if (step > 0 && baseIndex >= stations.length - 1) return;
-    stopIndex = (baseIndex + step + stations.length) % stations.length;
+    if (step < 0 && baseIndex <= 0) return;
+    stopIndex = baseIndex + step;
     const clip = currentClip();
     const direction = step > 0 ? "forward" : "backward";
     const statusMessage = currentLine().code === "MSG"
@@ -285,26 +270,29 @@ function moveStation(step) {
     playClip(clip, statusMessage);
 }
 $("stationUp").addEventListener("click", () => { hasPressedStationForward = true; moveStation(1); });
-$("stationDown").addEventListener("click", () => { hasPressedStationForward = true; moveStation(-1); });
+$("stationDown").addEventListener("click", () => moveStation(-1));
 $("routePrevious").addEventListener("click", () => { lineIndex = (lineIndex + lines.length - 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("routeNext").addEventListener("click", () => { lineIndex = (lineIndex + 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("resetButton").addEventListener("click", () => { hasPressedStationForward = false; lineIndex = 0; stopIndex = -1; selectedScenario = 0; selectedPreset = 0; isReverse = false; isMaintenance = false; stopPlayback("Reset · videos stopped", true); });
 $("modeButton").addEventListener("click", () => {
     isMaintenance = !isMaintenance;
     if (isMaintenance) {
-        playClip(maintenancePair, "Maintenance mode · vfd & screen test");
+        playClip(pairs.maintenancePair, "Maintenance mode · vfd & screen test");
     } else {
         stopPlayback("Normal service · announcements enabled", true);
     }
 });
-$("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair, "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
+$("doorsClosingButton").addEventListener("click", () => playClip(pairs.doorsClosingPair, "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
 $("arrivedButton").addEventListener("click", () => {
     if (!hasPressedStationForward) return;
     const stationClip = currentClip();
-    const isBgbStation = stationClip.station === "BGB";
-    const arrivingPair = isBgbStation ? bgbArrPair : bbtArrivingPair;
-    const arrivedPair = isBgbStation ? bgbArrivedPair : bbtArrivedPair;
-    playClip(arrivingPair, `Arriving · ${stationClip.station}`, { cddLoop: false, cldLoop: true, nextPair: arrivedPair });
+    const arrival = stationClip.arrival;
+    if (!arrival?.approaching) return;
+    playClip(pairs[arrival.approaching], `Arriving · ${stationClip.station}`, {
+        cddLoop: false,
+        cldLoop: true,
+        ...(arrival.arrived ? { nextPair: pairs[arrival.arrived] } : {})
+    });
 });
 $("directionLever").addEventListener("click", () => {
     isReverse = !isReverse;

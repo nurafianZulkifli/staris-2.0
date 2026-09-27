@@ -1,12 +1,5 @@
 {
   "pairs": {
-    "jurArrPair": {
-      "station": "JUR",
-      "destination": "JURD",
-      "screen-l": "assets/nsl/jur-arr.mp4",
-      "screen-r": "assets/nsl/ld-jur.mp4",
-      "vfd": "assets/nsl/ld-jur.mp4"
-    },
     
     "bbtNxtPair": {
       "station": "BBT",
@@ -15,24 +8,28 @@
       "screen-r": "assets/nsl/ld-msp-trunc.mp4",
       "screen-r2": "assets/nsl/ad-nxt.mp4",
       "vfd": "assets/nsl/vfd/bbt-nxt.mp4",
-      "announcement": "assets/announcements/bbt-nxt.wav"
+      "announcement": "assets/announcements/bbt-nxt.wav",
+      "arrival": { "approaching": "bbtArrPair", "arrived": "bbtArrdPair" }
     },
-    "bbtArrivingPair": {
+    "bbtArrPair": {
       "station": "BBT",
       "destination": "MSP",
       "screen-l": "assets/nsl/bbt-arr.mp4",
       "screen-r": "assets/nsl/ad-arr.mp4",
       "vfd": "assets/nsl/vfd/bbt-arr.mp4",
-      "announcement": "assets/announcements/bbt-arr.wav"
+      "announcement": "assets/announcements/bbt-arr.wav",
+      "displayState": "approaching"
     },
-    "bbtArrivedPair": {
+    "bbtArrdPair": {
       "station": "BBT",
       "destination": "MSP",
       "screen-l": "assets/nsl/bbt-arrd.mp4",
       "screen-r": "assets/nsl/ld-msp.mp4",
-      "vfd": "assets/nsl/vfd/bbt-arrd.mp4"
+      "vfd": "assets/nsl/vfd/bbt-arrd.mp4",
+      "displayState": "arrived"
     },
-    
+
+
     "bgbNxtPair": {
       "station": "BGB",
       "destination": "MSP",
@@ -40,7 +37,8 @@
       "screen-r": "assets/nsl/ld-msp-trunc.mp4",
       "screen-r2": "assets/nsl/ad-nxt.mp4",
       "vfd": "assets/nsl/vfd/bgb-nxt.mp4",
-      "announcement": "assets/announcements/bgb-nxt.wav"
+      "announcement": "assets/announcements/bgb-nxt.wav",
+      "arrival": { "approaching": "bgbArrPair", "arrived": "bgbArrdPair" }
     },
     "bgbArrPair": {
       "station": "BGB",
@@ -48,15 +46,19 @@
       "screen-l": "assets/nsl/bgb-arr.mp4",
       "screen-r": "assets/nsl/ad-arr.mp4",
       "vfd": "assets/nsl/vfd/bgb-arr.mp4",
-      "announcement": "assets/announcements/bgb-arr.wav"
+      "announcement": "assets/announcements/bgb-arr.wav",
+      "displayState": "approaching"
     },
-    "bgbArrivedPair": {
+    "bgbArrdPair": {
       "station": "BGB",
       "destination": "MSP",
       "screen-l": "assets/nsl/bgb-arrd.mp4",
       "screen-r": "assets/nsl/ld-msp.mp4",
-      "vfd": "assets/nsl/vfd/bgb-arrd.mp4"
+      "vfd": "assets/nsl/vfd/bgb-arrd.mp4",
+      "displayState": "arrived"
     },
+
+
     "bbtNxtPair_jur": {
       "station": "BBT",
       "destination": "JUR",
@@ -64,9 +66,40 @@
       "screen-r": null,
       "vfd": null
     },
-    "JurNxtPair": {
-      "station": "JUR",
+
+    "jurDNxtPair": {
+      "station": "JURD",
       "destination": "JUR",
+      "screen-l": "assets/nsl/jurD-nxt.mp4",
+      "screen-r": "assets/nsl/ld-jur-trunc.mp4",
+      "screen-r2": "assets/nsl/ad-nxt.mp4",
+      "vfd": "assets/nsl/vfd/jurD-nxt.mp4",
+      "vfd-next": "assets/nsl/vfd/jurD-nxt2.mp4",
+      "announcement": "assets/announcements/jurD-nxt.wav",
+      "arrival": { "approaching": "jurDArrPair", "arrived": "jurDArrdPair" }
+    },
+    "jurDArrPair": {
+      "station": "JURD",
+      "destination": "JURD",
+      "screen-l": "assets/nsl/jurd-arr.mp4",
+      "screen-r": "assets/nsl/ad-arr.mp4",
+      "vfd": "assets/nsl/vfd/jurD-arr.mp4",
+      "vfd-next": "assets/nsl/vfd/jurD-arr2.mp4",
+      "announcement": "assets/announcements/jurD-arr.wav",
+      "displayState": "approaching"
+    },
+    "jurDArrdPair": {
+      "station": "JURD",
+      "destination": "JURD",
+      "screen-l": "assets/nsl/jurD-arr.mp4",
+      "screen-r": "assets/nsl/ld-jur.mp4",
+      "vfd": "assets/nsl/vfd/jurD-arrd.mp4",
+      "displayState": "arrived"
+    },
+    
+    "psrArrPair": {
+      "station": "PSR",
+      "destination": "PSR",
       "screen-l": null,
       "screen-r": null,
       "vfd": null
@@ -84,6 +117,13 @@
       "screen-r": null,
       "vfd": "assets/nsl/vfd/sus-eng.mp4",
       "announcement": "assets/announcements/sus-eng-ann.wav"
+    },
+    "susCHNPair": {
+      "station": "SUS CHN",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": "assets/nsl/vfd/sus-chn.mp4",
+      "announcement": "assets/announcements/sus-chn-ann.wav"
     },
     "susMLYPair": {
       "station": "SUS MLY",
@@ -106,12 +146,6 @@
       "screen-r": null,
       "vfd": null
     },
-
-
-
-
-
-
     "doorsClosingPair": {
       "screen-l": "assets/nsl/dc-1.mp4",
       "screen-r": "assets/nsl/dc-2.mp4",
@@ -133,15 +167,22 @@
       "presets": [
         {
           "name": "TO MSP",
-          "stations": ["bbtNxtPair", "bgbArrPair"]
+          "stations": [
+            "bbtNxtPair",
+            "bgbNxtPair"
+          ]
         },
         {
           "name": "TO JUR",
-          "stations": ["bbtNxtPair_jur", "JurNxtPair"]
+          "stations": [
+            "jurDNxtPair"
+          ]
         },
         {
           "name": "SPECIAL TER",
-          "stations": ["yisArrPair"]
+          "stations": [
+            "yisArrPair"
+          ]
         }
       ]
     },
@@ -150,8 +191,10 @@
       "name": "Line B - EWL",
       "presets": [
         {
-          "name": "TO JUR",
-          "stations": ["jurArrPair"]
+          "name": "TO PSR",
+          "stations": [
+            "psrArrPair"
+          ]
         }
       ]
     },
@@ -161,11 +204,18 @@
       "presets": [
         {
           "name": "SUS",
-          "stations": ["susENGPair", "susMLYPair"]
+          "stations": [
+            "susENGPair",
+            "susCHNPair",
+            "susMLYPair"
+          ]
         },
         {
           "name": "GEN",
-          "stations": ["movePair", "trainStopPair"]
+          "stations": [
+            "movePair",
+            "trainStopPair"
+          ]
         }
       ]
     }
