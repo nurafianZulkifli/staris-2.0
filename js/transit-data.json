@@ -91,7 +91,7 @@
     "jurDArrdPair": {
       "station": "JURD",
       "destination": "JURD",
-      "screen-l": "assets/nsl/jurD-arr.mp4",
+      "screen-l": "assets/nsl/jurD-arrd.mp4",
       "screen-r": "assets/nsl/ld-jur.mp4",
       "vfd": "assets/nsl/vfd/jurD-arrd.mp4",
       "displayState": "arrived"
