@@ -229,6 +229,19 @@ function playClip(clip, message, options = {}) {
     const shouldLoopArrivalScreen = !isMessageClip && isArrivingClip && !!clip.announcement;
     const shouldLoopScreenL = isMessageClip ? false : shouldLoopArrivalScreen || (options.cddLoop ?? true);
     const shouldLoopScreenR = isMessageClip ? false : shouldLoopArrivalScreen || (hasNextRightScreen ? false : (options.cldLoop ?? true));
+    if (clip.announcement) {
+        const audio = $("announcementAudio");
+        audio.src = new URL(clip.announcement, document.baseURI).href;
+        audio.load();
+        audio.play().then(() => {
+            if (generation === playbackGeneration) pendingAnnouncement = null;
+        }).catch((error) => {
+            if (error.name === "NotAllowedError" && generation === playbackGeneration) {
+                pendingAnnouncement = { generation, source: audio.src };
+                $("messageStrip").textContent = "Announcement blocked · click to play";
+            }
+        });
+    }
     loadVideo(screenL, $("cddScreen"), clip["screen-l"], shouldLoopScreenL, generation);
     loadVideo(screenR, $("cldScreen"), clip["screen-r"], shouldLoopScreenR, generation);
     if (hasNextRightScreen) {
@@ -248,18 +261,6 @@ function playClip(clip, message, options = {}) {
             }, { once: true });
         }
         loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, Boolean(nextVfdPath) || isDoorsClosing || isMessageClip ? false : true, generation);
-    }
-    if (clip.announcement) {
-        const audio = $("announcementAudio");
-        audio.src = new URL(clip.announcement, document.baseURI).href;
-        audio.load();
-        audio.play().then(() => {
-            if (generation === playbackGeneration) pendingAnnouncement = null;
-        }).catch((error) => {
-            if (error.name === "NotAllowedError" && generation === playbackGeneration) {
-                pendingAnnouncement = { generation, source: audio.src };
-            }
-        });
     }
     render(message || `Playing ${clip.station} · to ${clip.destination}`);
 }
@@ -342,6 +343,9 @@ document.addEventListener("click", () => {
         return;
     }
     audio.play().then(() => {
-        if (pendingAnnouncement === pending) pendingAnnouncement = null;
+        if (pendingAnnouncement === pending) {
+            pendingAnnouncement = null;
+            $("messageStrip").textContent = "Announcement playing";
+        }
     }).catch(() => { });
 });
