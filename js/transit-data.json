@@ -42,7 +42,7 @@
       "vfd": "assets/nsl/vfd/bgb-nxt.mp4",
       "announcement": "assets/announcements/bgb-nxt.wav"
     },
-    "bgbArrivingPair": {
+    "bgbArrPair": {
       "station": "BGB",
       "destination": "MSP",
       "screen-l": "assets/nsl/bgb-arr.mp4",
@@ -56,6 +56,55 @@
       "screen-l": "assets/nsl/bgb-arrd.mp4",
       "screen-r": "assets/nsl/ld-msp.mp4",
       "vfd": "assets/nsl/vfd/bgb-arrd.mp4"
+    },
+    "bbtNxtPair_jur": {
+      "station": "BBT",
+      "destination": "JUR",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": null
+    },
+    "JurNxtPair": {
+      "station": "JUR",
+      "destination": "JUR",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": null
+    },
+    "yisArrPair": {
+      "station": "YIS",
+      "destination": "TER",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": null
+    },
+    "susENGPair": {
+      "station": "SUS ENG",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": "assets/nsl/vfd/sus-eng.mp4",
+      "announcement": "assets/announcements/sus-eng-ann.wav"
+    },
+    "susMLYPair": {
+      "station": "SUS MLY",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": "assets/nsl/vfd/sus-mly.mp4",
+      "announcement": "assets/announcements/sus-mly-ann.wav"
+    },
+    "movePair": {
+      "station": "GEN",
+      "destination": "MOVEMENT",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": null
+    },
+    "trainStopPair": {
+      "station": "GEN",
+      "destination": "TRAIN STOP",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": null
     },
 
 
@@ -80,26 +129,44 @@
   "lines": [
     {
       "code": "NSL",
-      "name": "TO MSP",
-      "stations": [
-        "bbtNxtPair",
-        "bgbNxtPair"
+      "name": "Line A - NSL",
+      "presets": [
+        {
+          "name": "TO MSP",
+          "stations": ["bbtNxtPair", "bgbArrPair"]
+        },
+        {
+          "name": "TO JUR",
+          "stations": ["bbtNxtPair_jur", "JurNxtPair"]
+        },
+        {
+          "name": "SPECIAL TER",
+          "stations": ["yisArrPair"]
+        }
       ]
     },
     {
       "code": "EWL",
-      "name": "TO JUR",
-      "stations": [
-        "jurArrPair"
+      "name": "Line B - EWL",
+      "presets": [
+        {
+          "name": "TO JUR",
+          "stations": ["jurArrPair"]
+        }
       ]
     },
     {
       "code": "MSG",
-      "name": "MSG",
-      "stations": [
-        "bbtNxtPair",
-        "jurArrPair",
-        "bbtNxtPair"
+      "name": "Messages",
+      "presets": [
+        {
+          "name": "SUS",
+          "stations": ["susENGPair", "susMLYPair"]
+        },
+        {
+          "name": "GEN",
+          "stations": ["movePair", "trainStopPair"]
+        }
       ]
     }
   ]

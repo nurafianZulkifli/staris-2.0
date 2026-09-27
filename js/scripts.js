@@ -3,7 +3,7 @@ let bbtNxtPair;
 let bbtArrivingPair;
 let bbtArrivedPair;
 let bgbNxtPair;
-let bgbArrivingPair;
+let bgbArrPair;
 let bgbArrivedPair;
 let doorsClosingPair;
 let maintenancePair;
@@ -17,13 +17,16 @@ fetch("js/transit-data.json")
         bbtArrivingPair = pairs.bbtArrivingPair;
         bbtArrivedPair = pairs.bbtArrivedPair;
         bgbNxtPair = pairs.bgbNxtPair;
-        bgbArrivingPair = pairs.bgbArrivingPair;
+        bgbArrPair = pairs.bgbArrPair;
         bgbArrivedPair = pairs.bgbArrivedPair;
         doorsClosingPair = pairs.doorsClosingPair;
-            maintenancePair = pairs.maintenancePair;
+        maintenancePair = pairs.maintenancePair;
         lines = data.lines.map((line) => ({
             ...line,
-            stations: line.stations.map((name) => pairs[name])
+            presets: line.presets.map((preset) => ({
+                ...preset,
+                stations: preset.stations.map((name) => pairs[name])
+            }))
         }));
         const navigationEntry = performance.getEntriesByType("navigation")[0];
         const isRefresh = navigationEntry ? navigationEntry.type === "reload" : performance.navigation?.type === 1;
@@ -56,13 +59,16 @@ let hasPressedStationForward = false;
 const lastStationStorageKey = "nsl-transit-last-station";
 const $ = (id) => document.getElementById(id);
 const currentLine = () => lines[lineIndex];
-const currentClip = () => currentLine().stations[Math.max(0, stopIndex) % currentLine().stations.length];
+const currentPreset = () => currentLine().presets[selectedPreset];
+const currentStations = () => currentPreset().stations;
+const currentClip = () => currentStations()[Math.max(0, stopIndex) % currentStations().length];
 const currentStop = () => currentClip().station;
 function rememberLastStation(clip) {
-    if (!currentLine().stations.includes(clip)) return;
+    if (!currentStations().includes(clip)) return;
     try {
         localStorage.setItem(lastStationStorageKey, JSON.stringify({
             lineName: currentLine().name,
+            presetName: currentPreset().name,
             station: clip.station,
             "screen-l": clip["screen-l"]
         }));
@@ -73,13 +79,18 @@ function restoreLastStation() {
         const saved = JSON.parse(localStorage.getItem(lastStationStorageKey));
         if (!saved) return false;
         const restoredLineIndex = lines.findIndex((line) => line.name === saved.lineName);
-        const stations = lines[restoredLineIndex]?.stations;
+        const presets = lines[restoredLineIndex]?.presets;
+        const restoredPresetIndex = presets?.findIndex((preset) =>
+            (!saved.presetName || preset.name === saved.presetName) &&
+            preset.stations.some((clip) => clip.station === saved.station && clip["screen-l"] === saved["screen-l"])
+        ) ?? -1;
+        const stations = presets?.[restoredPresetIndex]?.stations;
         const restoredStopIndex = stations?.findIndex((clip) => clip.station === saved.station && clip["screen-l"] === saved["screen-l"]) ?? -1;
-        if (restoredStopIndex < 0) return false;
+        if (restoredLineIndex < 0 || restoredPresetIndex < 0 || restoredStopIndex < 0) return false;
         lineIndex = restoredLineIndex;
         stopIndex = restoredStopIndex;
         selectedScenario = lineIndex;
-        selectedPreset = stopIndex % 3;
+        selectedPreset = restoredPresetIndex;
         hasPressedStationForward = true;
         return true;
     } catch {
@@ -102,11 +113,12 @@ function render(message) {
         if (vfd.readyState > 0) vfd.currentTime = 0;
     }
     const isMaintenanceClip = activeClip === maintenancePair;
-    $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : activeClip === doorsClosingPair ? "→ Doors Closing" : activeClip ? `→ ${currentLine().code} · ${currentLine().name}` : "Ready...";
+    const isMessageClip = currentLine()?.code === "MSG" && currentStations().includes(activeClip);
+    $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : activeClip === doorsClosingPair ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
     const isArrivedClip = activeClip === bbtArrivedPair || activeClip === bgbArrivedPair;
-    const isArrival = activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrivingPair || activeClip === bgbArrivedPair;
-    $("lcdStation").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
-    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && activeClip !== doorsClosingPair && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
+    const isArrival = activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrPair || activeClip === bgbArrivedPair;
+    $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && activeClip !== doorsClosingPair ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
+    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && !isMessageClip && activeClip !== doorsClosingPair && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
     $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
     $("inUseLight").classList.toggle("on", isRunning);
@@ -115,13 +127,17 @@ function render(message) {
     $("linkLight").classList.toggle("green", !isRunning);
     $("doorsClosingButton").classList.toggle("active", isRunning && activeClip === doorsClosingPair);
     $("doorsClosingButton").setAttribute("aria-pressed", String(isRunning && activeClip === doorsClosingPair));
-    $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrivingPair || activeClip === bgbArrivedPair)));
+    $("arrivedButton").setAttribute("aria-pressed", String(isRunning && (activeClip === bbtArrivingPair || activeClip === bbtArrivedPair || activeClip === bgbArrPair || activeClip === bgbArrivedPair)));
     $("arrivedButton").disabled = !hasPressedStationForward;
     $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Select a station first";
     $("directionLever").classList.toggle("reverse", isReverse);
     $("directionLever").setAttribute("aria-pressed", String(isReverse));
     document.querySelectorAll(".scenario-button").forEach((button) => {
-        const selected = Number(button.dataset.scenario) === selectedScenario && Number(button.dataset.preset) === selectedPreset;
+        const scenario = Number(button.dataset.scenario);
+        const preset = Number(button.dataset.preset);
+        const isConfigured = Boolean(lines[scenario]?.presets[preset]);
+        const selected = scenario === selectedScenario && preset === selectedPreset;
+        button.disabled = !isConfigured;
         button.setAttribute("aria-pressed", String(selected));
     });
 }
@@ -180,6 +196,7 @@ function playClip(clip, message, options = {}) {
     const screenL = $("screen-l");
     const screenR = $("screen-r");
     const vfdVideo = $("vfdVideo");
+    const isMessageClip = currentLine()?.code === "MSG" && currentStations().includes(clip);
     if (options.nextPair) {
         let endedVideos = 0;
         let announcementFinished = false;
@@ -220,18 +237,20 @@ function playClip(clip, message, options = {}) {
     }
     const isArrivingClip = /-arr(?:\.mp4)?$/i.test(clip["screen-r"] || "") || /-arr(?:\.mp4)?$/i.test(clip["screen-l"] || "") || /-arr(?:\.mp4)?$/i.test(clip.vfd || "");
     const hasNextRightScreen = Boolean(clip["screen-r2"]);
-    const shouldLoopArrivalScreen = isArrivingClip && !!clip.announcement;
-    loadVideo(screenL, $("cddScreen"), clip["screen-l"], shouldLoopArrivalScreen ? true : (options.cddLoop ?? true), generation);
-    loadVideo(screenR, $("cldScreen"), clip["screen-r"], shouldLoopArrivalScreen ? true : hasNextRightScreen ? false : (options.cldLoop ?? true), generation);
+    const shouldLoopArrivalScreen = !isMessageClip && isArrivingClip && !!clip.announcement;
+    const shouldLoopScreenL = isMessageClip ? false : shouldLoopArrivalScreen || (options.cddLoop ?? true);
+    const shouldLoopScreenR = isMessageClip ? false : shouldLoopArrivalScreen || (hasNextRightScreen ? false : (options.cldLoop ?? true));
+    loadVideo(screenL, $("cddScreen"), clip["screen-l"], shouldLoopScreenL, generation);
+    loadVideo(screenR, $("cldScreen"), clip["screen-r"], shouldLoopScreenR, generation);
     if (hasNextRightScreen) {
         screenR.addEventListener("ended", () => {
             if (generation !== playbackGeneration) return;
-            loadVideo(screenR, $("cldScreen"), clip["screen-r2"], true, generation);
+            loadVideo(screenR, $("cldScreen"), clip["screen-r2"], !isMessageClip, generation);
         }, { once: true });
     }
     if (vfdVideo && clip.vfd) {
         const isDoorsClosing = clip === doorsClosingPair;
-        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, isDoorsClosing ? false : shouldLoopArrivalScreen ? true : true, generation);
+        loadVideo(vfdVideo, $("vfdPanel"), clip.vfd, isDoorsClosing || isMessageClip ? false : true, generation);
     }
     if (clip.announcement) {
         const audio = $("announcementAudio");
@@ -253,15 +272,17 @@ function playClip(clip, message, options = {}) {
     render(message || `Playing ${clip.station} · to ${clip.destination}`);
 }
 function moveStation(step) {
-    const stations = currentLine().stations;
+    const stations = currentStations();
     if (!stations.length) return;
     const baseIndex = stopIndex < 0 ? (step > 0 ? -1 : 0) : stopIndex;
     if (step > 0 && baseIndex >= stations.length - 1) return;
     stopIndex = (baseIndex + step + stations.length) % stations.length;
-    selectedPreset = stopIndex % 3;
     const clip = currentClip();
     const direction = step > 0 ? "forward" : "backward";
-    playClip(clip, `Station ${direction} · ${clip.station} to ${clip.destination}`);
+    const statusMessage = currentLine().code === "MSG"
+        ? `Message selected · ${clip.station}`
+        : `Station ${direction} · ${clip.station} to ${clip.destination}`;
+    playClip(clip, statusMessage);
 }
 $("stationUp").addEventListener("click", () => { hasPressedStationForward = true; moveStation(1); });
 $("stationDown").addEventListener("click", () => { hasPressedStationForward = true; moveStation(-1); });
@@ -281,21 +302,29 @@ $("arrivedButton").addEventListener("click", () => {
     if (!hasPressedStationForward) return;
     const stationClip = currentClip();
     const isBgbStation = stationClip.station === "BGB";
-    const arrivingPair = isBgbStation ? bgbArrivingPair : bbtArrivingPair;
+    const arrivingPair = isBgbStation ? bgbArrPair : bbtArrivingPair;
     const arrivedPair = isBgbStation ? bgbArrivedPair : bbtArrivedPair;
     playClip(arrivingPair, `Arriving · ${stationClip.station}`, { cddLoop: false, cldLoop: true, nextPair: arrivedPair });
 });
-$("directionLever").addEventListener("click", () => { isReverse = !isReverse; lineIndex = isReverse ? 1 : 0; stopIndex = 0; playClip(currentClip(), `Direction set · ${isReverse ? "Southbound" : "Northbound"}`); });
+$("directionLever").addEventListener("click", () => {
+    isReverse = !isReverse;
+    lineIndex = isReverse ? 1 : 0;
+    selectedScenario = lineIndex;
+    selectedPreset = 0;
+    stopIndex = 0;
+    playClip(currentClip(), `Direction set · ${isReverse ? "Southbound" : "Northbound"}`);
+});
 document.querySelectorAll(".scenario-button").forEach((button) => button.addEventListener("click", () => {
     selectedScenario = Number(button.dataset.scenario);
     lineIndex = selectedScenario;
     selectedPreset = Number(button.dataset.preset);
-    stopIndex = selectedPreset;
-    const selectionName = ["Line A - NSL", "Line B - EWL", "Messages"][selectedScenario];
-    playClip(currentClip(), `${selectionName} · preset ${selectedPreset + 1}`);
+    stopIndex = 0;
+    hasPressedStationForward = false;
+    const selectionDetail = currentLine().code === "MSG" ? ` · ${currentClip().station}` : "";
+    playClip(currentClip(), `${currentLine().name} · ${currentPreset().name}${selectionDetail}`);
 }));
 $("downloadButton").addEventListener("click", () => {
-    const report = [`TRANSIT INFORMATION SYSTEM`, `Line: ${currentLine().code} ${currentLine().name}`, `Selection: ${["Line A - NSL", "Line B - EWL", "Messages"][selectedScenario]} / Preset ${selectedPreset + 1}`, `Next station: ${currentStop()}`, `Direction: ${isReverse ? "Southbound" : "Northbound"}`, `Mode: ${isMaintenance ? "Maintenance" : "Normal service"}`, `Status: ${isRunning ? "Running" : "Standby"}`].join("\n");
+    const report = [`TRANSIT INFORMATION SYSTEM`, `Line: ${currentLine().code} ${currentPreset().name}`, `Selection: ${currentLine().name} / Preset ${selectedPreset + 1}`, `Next station: ${currentStop()}`, `Direction: ${isReverse ? "Southbound" : "Northbound"}`, `Mode: ${isMaintenance ? "Maintenance" : "Normal service"}`, `Status: ${isRunning ? "Running" : "Standby"}`].join("\n");
     const link = document.createElement("a");
     link.href = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     link.download = "transit-service-readout.txt";
