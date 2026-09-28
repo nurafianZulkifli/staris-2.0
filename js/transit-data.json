@@ -161,19 +161,19 @@
       "vfd": "assets/nsl/vfd/sus-mly.mp4",
       "announcement": "assets/announcements/sus-mly-ann.wav"
     },
-    "movePair": {
-      "station": "GEN",
-      "destination": "MOVEMENT",
+    "crossPair": {
+      "station": "CROSSING",
       "screen-l": null,
       "screen-r": null,
-      "vfd": null
+      "vfd": "assets/nsl/vfd/track-cross.mp4",
+      "announcement": "assets/announcements/track-crossing-ann.wav"
     },
     "trainStopPair": {
-      "station": "GEN",
-      "destination": "TRAIN STOP",
+      "station": "TRAIN STOP",
       "screen-l": null,
       "screen-r": null,
-      "vfd": null
+      "vfd": "assets/nsl/vfd/train-stopped.mp4",
+      "announcement": "assets/announcements/train-stopped-ann.wav"
     },
     "doorsClosingPair": {
       "screen-l": "assets/nsl/dc-1.mp4",
@@ -243,7 +243,7 @@
         {
           "name": "GEN",
           "stations": [
-            "movePair",
+            "crossPair",
             "trainStopPair"
           ]
         }
