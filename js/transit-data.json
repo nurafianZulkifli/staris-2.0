@@ -59,6 +59,35 @@
     },
 
 
+    "cckNxtPair": {
+    "station": "CCK",
+    "destination": "MSP",
+    "screen-l": "assets/nsl/cck-nxt.mp4",
+    "screen-r": "assets/nsl/ld-msp-trunc.mp4",
+    "screen-r2": "assets/nsl/ad-nxt.mp4",
+    "vfd": "assets/nsl/vfd/cck-nxt.mp4",
+    "announcement": "assets/announcements/cck-nxt.wav",
+    "arrival": { "approaching": "cckArrPair", "arrived": "cckArrdPair" }
+    },
+    "cckArrPair": {
+      "station": "CCK",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/cck-arr.mp4",
+      "screen-r": "assets/nsl/ad-arr.mp4",
+      "vfd": "assets/nsl/vfd/cck-arr.mp4",
+      "announcement": "assets/announcements/cck-arr.wav",
+      "displayState": "approaching"
+    },
+    "cckArrdPair": {
+      "station": "CCK",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/cck-arrd.mp4",
+      "screen-r": "assets/nsl/ld-msp.mp4",
+      "vfd": "assets/nsl/vfd/cck-arrd.mp4",
+      "displayState": "arrived"
+    },
+
+
     "bbtNxtPair_jur": {
       "station": "BBT",
       "destination": "JUR",
@@ -169,7 +198,8 @@
           "name": "TO MSP",
           "stations": [
             "bbtNxtPair",
-            "bgbNxtPair"
+            "bgbNxtPair",
+            "cckNxtPair"
           ]
         },
         {
