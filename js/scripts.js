@@ -104,7 +104,6 @@ function render(message) {
         const vfdSource = new URL(activeVfdPath, document.baseURI).href;
         if (vfd.src !== vfdSource) {
             vfd.src = vfdSource;
-            vfd.load();
         }
     }
     if (vfd && !activeClip) {
@@ -172,7 +171,6 @@ function loadVideo(video, screen, path, loop, generation) {
     if (video.id === "screen-r") updateAdAudioButton(path);
     if (video.src !== source) {
         video.src = source;
-        video.load();
     } else {
         video.currentTime = 0;
     }
@@ -249,7 +247,6 @@ function playClip(clip, message, options = {}) {
     if (clip.announcement) {
         const audio = $("announcementAudio");
         audio.src = new URL(clip.announcement, document.baseURI).href;
-        audio.load();
         audio.play().then(() => {
             if (generation === playbackGeneration) pendingAnnouncement = null;
         }).catch((error) => {
