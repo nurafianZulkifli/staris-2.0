@@ -189,8 +189,14 @@ function updateAdAudioButton(path) {
     button.setAttribute("aria-pressed", String(adAudioMuted));
 }
 // Lever A only enables preset 1 of the line rows; lever B only enables preset 2. Message rows are unaffected.
+// Line B (EWL) additionally allows preset 3 on lever B.
 const leverPreset = () => (isReverse ? 1 : 0);
-const defaultPreset = () => (currentLine()?.code !== "MSG" && currentLine()?.presets[leverPreset()] ? leverPreset() : 0);
+const allowedPresets = (code) => (code === "EWL" && isReverse ? [1, 2] : [leverPreset()]);
+const defaultPreset = () => {
+    const line = currentLine();
+    if (line?.code === "MSG") return 0;
+    return allowedPresets(line?.code).find((index) => line?.presets[index]) ?? 0;
+};
 const currentLine = () => lines[lineIndex];
 // Line-specific doors closing clip; falls back to the default one until that line's videos are available.
 function doorsClosingPair() {
@@ -272,18 +278,13 @@ function render(message) {
     $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Select a station first";
     $("directionLever").classList.toggle("reverse", isReverse);
     $("directionLever").setAttribute("aria-pressed", String(isReverse));
-    const leverTip = `Lever ${isReverse ? "B" : "A"}: Line A/B presets limited to preset ${leverPreset() + 1} (Messages unaffected). Click to switch to ${isReverse ? "A (preset 1)" : "B (preset 2)"}`;
-    $("directionLever").title = leverTip;
-    $("directionLever").setAttribute("aria-label", leverTip);
     document.querySelectorAll(".scenario-button").forEach((button) => {
         const scenario = Number(button.dataset.scenario);
         const preset = Number(button.dataset.preset);
         const isConfigured = Boolean(lines[scenario]?.presets[preset]);
         const selected = scenario === selectedScenario && preset === selectedPreset;
-        const blockedByLever = lines[scenario]?.code !== "MSG" && preset !== leverPreset();
+        const blockedByLever = lines[scenario]?.code !== "MSG" && !allowedPresets(lines[scenario]?.code).includes(preset);
         button.disabled = !isConfigured || blockedByLever;
-        const baseLabel = button.dataset.baseLabel ??= button.getAttribute("aria-label");
-        button.title = blockedByLever ? `Unavailable · lever is at ${isReverse ? "B (preset 2 only)" : "A (preset 1 only)"}` : isConfigured ? baseLabel : "Not configured";
         button.setAttribute("aria-pressed", String(selected));
     });
 }
@@ -482,11 +483,12 @@ $("directionLever").addEventListener("click", () => {
         render(`Lever ${isReverse ? "B" : "A"}`);
         return;
     }
-    if (!currentLine()?.presets[leverPreset()]) {
-        render(`Lever ${isReverse ? "B" : "A"} · select a preset ${leverPreset() + 1}`);
+    const allowed = allowedPresets(currentLine()?.code);
+    if (!allowed.some((index) => currentLine()?.presets[index])) {
+        render(`Lever ${isReverse ? "B" : "A"} · select a preset ${allowed.map((index) => index + 1).join(" or ")}`);
         return;
     }
-    selectedPreset = leverPreset();
+    selectedPreset = allowed.includes(selectedPreset) && currentLine().presets[selectedPreset] ? selectedPreset : defaultPreset();
     stopIndex = 0;
     hasPressedStationForward = Boolean(currentClip().arrival?.approaching);
     playClip(currentClip(), `Lever ${isReverse ? "B" : "A"} · ${currentLine().name} · ${currentPreset().name}`);

@@ -613,6 +613,20 @@ button {
     transform: translateY(-2px);
 }
 
+.scenario-button:disabled {
+    border-color: #4a5560;
+    color: #7d858c;
+    opacity: .45;
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: grayscale(1);
+}
+
+.scenario-button:disabled:hover {
+    border-color: #4a5560;
+    transform: none;
+}
+
 .scenario-button[aria-pressed="true"] {
     border-color: #e1e532;
     color: #fff;
