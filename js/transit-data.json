@@ -202,6 +202,13 @@
       "vfd": "assets/nsl/vfd/train-stopped.mp4",
       "announcement": "assets/announcements/train-stopped-ann.wav"
     },
+      "moveToCentrePair": {
+      "station": "MOVE TO CTR",
+      "screen-l": null,
+      "screen-r": null,
+      "vfd": "assets/nsl/vfd/move-ctr.mp4",
+      "announcement": "assets/announcements/move-ctr-ann.wav"
+    },
     "doorsClosingPair": {
       "screen-l": "assets/nsl/dc-1.mp4",
       "screen-r": "assets/nsl/dc-2.mp4",
@@ -277,7 +284,8 @@
           "name": "GEN",
           "stations": [
             "crossPair",
-            "trainStopPair"
+            "trainStopPair",
+            "moveToCentrePair"
           ]
         }
       ]
