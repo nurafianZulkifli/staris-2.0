@@ -189,6 +189,13 @@ function updateAdAudioButton(path) {
     button.setAttribute("aria-pressed", String(adAudioMuted));
 }
 const currentLine = () => lines[lineIndex];
+// Line-specific doors closing clip; falls back to the default one until that line's videos are available.
+function doorsClosingPair() {
+    const lineSpecific = currentLine()?.code === "EWL" ? pairs.ewlDoorsClosingPair : null;
+    const isLoaded = lineSpecific && videoBlobCache.has(new URL(lineSpecific["screen-l"], document.baseURI).href);
+    return isLoaded ? lineSpecific : pairs.doorsClosingPair;
+}
+const isDoorsClosingPair = (clip) => clip === pairs.doorsClosingPair || clip === pairs.ewlDoorsClosingPair;
 const currentPreset = () => currentLine().presets[selectedPreset];
 const currentStations = () => currentPreset().stations;
 const currentClip = () => currentStations()[Math.max(0, stopIndex) % currentStations().length];
@@ -243,7 +250,7 @@ function render(message) {
     }
     const isMaintenanceClip = activeClip === pairs.maintenancePair;
     const isMessageClip = currentLine()?.code === "MSG" && currentStations().includes(activeClip);
-    const isDoorsClosingClip = activeClip === pairs.doorsClosingPair;
+    const isDoorsClosingClip = isDoorsClosingPair(activeClip);
     $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : isDoorsClosingClip ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
     const isArrivedClip = activeClip?.displayState === "arrived";
     const isArrival = activeClip?.displayState === "approaching" || isArrivedClip;
@@ -403,7 +410,7 @@ function playClip(clip, message, options = {}) {
         }, { once: true });
     }
     if (vfdVideo && clip.vfd) {
-        const isDoorsClosing = clip === pairs.doorsClosingPair;
+        const isDoorsClosing = isDoorsClosingPair(clip);
         const nextVfdPath = clip["vfd-next"];
         if (nextVfdPath) {
             vfdVideo.addEventListener("ended", () => {
@@ -448,7 +455,7 @@ $("modeButton").addEventListener("click", () => {
         stopPlayback("Normal service · announcements enabled", true);
     }
 });
-$("doorsClosingButton").addEventListener("click", () => playClip(pairs.doorsClosingPair, "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
+$("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair(), "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
 $("arrivedButton").addEventListener("click", () => {
     if (!hasPressedStationForward) return;
     const stationClip = currentClip();

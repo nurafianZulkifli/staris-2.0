@@ -208,6 +208,12 @@
       "announcement": "assets/announcements/dc-ann.wav",
       "vfd": "assets/nsl/vfd/dc.mp4"
     },
+    "ewlDoorsClosingPair": {
+      "screen-l": "assets/ewl/dc-1.mp4",
+      "screen-r": "assets/ewl/dc-2.mp4",
+      "announcement": "assets/announcements/dc-ann.wav",
+      "vfd": "assets/ewl/vfd/dc.mp4"
+    },
     "maintenancePair": {
       "station": "MAINTENANCE",
       "destination": "SYSTEM",
