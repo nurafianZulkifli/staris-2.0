@@ -3,6 +3,35 @@ let lines = [];
 let activeVfdPath = null;
 let pendingAnnouncement = null;
 let adAudioMuted = false;
+// Hidden displays keep playing silently so clip sequencing stays intact when the mode changes.
+const displayModes = [
+    { id: "all", label: "All displays", caption: "Display<br>All", screens: true, vfd: true },
+    { id: "screens", label: "Screens only", caption: "Display<br>Screens", screens: true, vfd: false },
+    { id: "vfd", label: "VFD only", caption: "Display<br>VFD", screens: false, vfd: true }
+];
+const displayModeStorageKey = "nsl-transit-display-mode";
+let displayModeIndex = 0;
+try {
+    displayModeIndex = Math.max(0, displayModes.findIndex((mode) => mode.id === localStorage.getItem(displayModeStorageKey)));
+} catch { }
+function applyDisplayMode() {
+    const mode = displayModes[displayModeIndex];
+    ["cddScreen", "cldScreen"].forEach((id) => $(id)?.classList.toggle("mode-off", !mode.screens));
+    $("vfdPanel")?.classList.toggle("mode-off", !mode.vfd);
+    ["screen-l", "screen-r"].forEach((id) => {
+        const video = $(id);
+        if (!video) return;
+        if (!mode.screens) video.muted = true;
+        else video.muted = id === "screen-r" && isAdAudioPath(video.currentSrc || video.src) && adAudioMuted;
+    });
+    const vfd = $("vfdVideo");
+    if (vfd) vfd.muted = !mode.vfd;
+    const button = $("displayModeButton");
+    if (!button) return;
+    button.setAttribute("aria-label", `Display mode: ${mode.label}`);
+    button.title = `Display mode: ${mode.label}`;
+    $("displayModeCaption").innerHTML = mode.caption;
+}
 const videoBlobCache = new Map();
 function videoUrl(path) {
     const url = new URL(path, document.baseURI).href;
@@ -16,20 +45,93 @@ function collectVideoPaths(node, found = new Set()) {
     }
     return found;
 }
-// Fully download every video into memory so playback never waits on the network.
-function preloadVideos(data) {
-    const queue = [...collectVideoPaths(data)];
+// Loads every clip and stores it in Cache Storage so later visits load from disk instead of the network.
+const videoCacheName = "staris-videos-v1";
+let videosReady = false;
+let videosLoaded = 0;
+let videosTotal = 0;
+let pendingPlay = null;
+const videoLoadingText = () => `Loading videos ${videosLoaded}/${videosTotal} � please wait`;
+function reportVideoProgress() {
+    if (videosReady) return;
+    const strip = $("messageStrip");
+    if (strip) strip.textContent = videoLoadingText();
+}
+async function preloadVideos(data) {
+    const ordered = new Set();
+    data.lines.forEach((line) => line.presets.forEach((preset) => preset.stations.forEach((name) => collectVideoPaths(data.pairs[name], ordered))));
+    collectVideoPaths(data, ordered);
+    const queue = [...ordered];
+    videosTotal = queue.length;
+    reportVideoProgress();
+    const cache = "caches" in window ? await caches.open(videoCacheName).catch(() => null) : null;
+    // Revalidates a saved clip against the server so replaced videos are re-downloaded; offline keeps the saved copy.
+    const isCachedCurrent = async (url, cached) => {
+        try {
+            const head = await fetch(url, { method: "HEAD", cache: "no-cache" });
+            if (!head.ok) return true;
+            const pairs = [["etag"], ["last-modified"], ["content-length"]];
+            return pairs.every(([h]) => {
+                const fresh = head.headers.get(h);
+                const old = cached.headers.get(h);
+                return !fresh || !old || fresh === old;
+            });
+        } catch {
+            return true;
+        }
+    };
+    // Retries network errors until the clip arrives; missing files (4xx) are skipped so they cannot block playback.
+    // Retries until the clip arrives so playback is only unlocked once every video is loaded.
+    const fetchWithRetry = async (url) => {
+        for (let attempt = 0; ; attempt++) {
+            if (navigator.onLine !== false) {
+                try {
+                    const response = await fetch(url, { cache: "no-cache" });
+                    if (response.ok) return response;
+                    if (response.status >= 400 && response.status < 500) return null;
+                } catch { }
+            }
+            await new Promise((resolve) => setTimeout(resolve, Math.min(1000 * 2 ** attempt, 15000)));
+        }
+    };
     const worker = async () => {
         while (queue.length) {
             const url = queue.shift();
-            try {
-                const response = await fetch(url);
-                if (!response.ok) continue;
-                videoBlobCache.set(url, URL.createObjectURL(await response.blob()));
-            } catch { }
+            for (;;) {
+                try {
+                    let response = cache && await cache.match(url);
+                    if (response && !(await isCachedCurrent(url, response))) {
+                        await cache.delete(url);
+                        response = null;
+                    }
+                    if (!response) {
+                        response = await fetchWithRetry(url);
+                        if (!response) {
+                            console.warn("Video not found, skipping:", url);
+                            break;
+                        }
+                        if (cache) await cache.put(url, response.clone()).catch(() => { });
+                    }
+                    videoBlobCache.set(url, URL.createObjectURL(await response.blob()));
+                    break;
+                } catch {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                }
+            }
+            videosLoaded += 1;
+            reportVideoProgress();
         }
     };
-    Array.from({ length: 4 }, worker);
+    await (document.readyState === "complete" ? Promise.resolve() : new Promise((resolve) => window.addEventListener("load", resolve, { once: true })));
+    await Promise.all(Array.from({ length: 3 }, worker));
+    videosReady = true;
+    if (pendingPlay) {
+        const [clip, message, options] = pendingPlay;
+        pendingPlay = null;
+        playClip(clip, message, options);
+    } else {
+        render();
+    }
 }
 fetch("js/transit-data.json")
     .then((response) => response.json())
@@ -147,7 +249,7 @@ function render(message) {
     const isArrival = activeClip?.displayState === "approaching" || isArrivedClip;
     $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
     $("lcdDistance").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
-    $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
+    $("messageStrip").textContent = message || (!videosReady && videosTotal ? videoLoadingText() : `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`);
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
     $("inUseLight").classList.toggle("on", isRunning);
     $("activeLight").classList.toggle("on", isRunning);
@@ -196,7 +298,9 @@ function loadVideo(video, screen, path, loop, generation) {
     const source = videoUrl(path);
     video.loop = loop;
     const isAdAudio = video.id === "screen-r" && isAdAudioPath(path);
-    video.muted = isAdAudio && adAudioMuted;
+    const mode = displayModes[displayModeIndex];
+    const hiddenByMode = video.id === "vfdVideo" ? !mode.vfd : !mode.screens;
+    video.muted = hiddenByMode || (isAdAudio && adAudioMuted);
     if (video.id === "screen-r") updateAdAudioButton(path);
     if (video.src !== source) {
         video.src = source;
@@ -220,6 +324,11 @@ function loadVideo(video, screen, path, loop, generation) {
     });
 }
 function playClip(clip, message, options = {}) {
+    if (!videosReady) {
+        pendingPlay = [clip, message, options];
+        render(videoLoadingText());
+        return;
+    }
     stopPlayback("Loading video pair");
     const generation = playbackGeneration;
     activeClip = clip;
@@ -377,6 +486,14 @@ $("downloadButton").addEventListener("click", () => {
     URL.revokeObjectURL(link.href);
     render("Service readout downloaded");
 });
+$("displayModeButton").addEventListener("click", () => {
+    displayModeIndex = (displayModeIndex + 1) % displayModes.length;
+    try {
+        localStorage.setItem(displayModeStorageKey, displayModes[displayModeIndex].id);
+    } catch { }
+    applyDisplayMode();
+});
+applyDisplayMode();
 $("adAudioToggle").addEventListener("click", (event) => {
     event.stopPropagation();
     adAudioMuted = !adAudioMuted;
