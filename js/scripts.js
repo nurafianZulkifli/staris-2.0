@@ -465,7 +465,7 @@ $("modeButton").addEventListener("click", () => {
         stopPlayback("Normal service · announcements enabled", true);
     }
 });
-$("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair(), "Doors closing", { cddLoop: false, cldLoop: false, stopOnComplete: true }));
+$("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair(), "Doors closing", { cddLoop: true, cldLoop: true }));
 $("arrivedButton").addEventListener("click", () => {
     if (!hasPressedStationForward) return;
     const stationClip = currentClip();
