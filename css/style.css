@@ -542,7 +542,7 @@ button {
 }
 
 .lever::after {
-    content: "↗";
+    content: "↖";
     position: absolute;
     inset: 6px;
     display: grid;
@@ -557,7 +557,7 @@ button {
 }
 
 .lever.reverse::after {
-    transform: rotate(180deg);
+    transform: scaleX(-1);
 }
 
 .scenario-column {

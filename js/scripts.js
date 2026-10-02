@@ -188,6 +188,9 @@ function updateAdAudioButton(path) {
     button.title = adAudioMuted ? "Unmute advertisement audio" : "Mute advertisement audio";
     button.setAttribute("aria-pressed", String(adAudioMuted));
 }
+// Lever A only enables preset 1 of the line rows; lever B only enables preset 2. Message rows are unaffected.
+const leverPreset = () => (isReverse ? 1 : 0);
+const defaultPreset = () => (currentLine()?.code !== "MSG" && currentLine()?.presets[leverPreset()] ? leverPreset() : 0);
 const currentLine = () => lines[lineIndex];
 // Line-specific doors closing clip; falls back to the default one until that line's videos are available.
 function doorsClosingPair() {
@@ -269,12 +272,18 @@ function render(message) {
     $("arrivedButton").title = hasPressedStationForward ? "Play arrival sequence" : "Select a station first";
     $("directionLever").classList.toggle("reverse", isReverse);
     $("directionLever").setAttribute("aria-pressed", String(isReverse));
+    const leverTip = `Lever ${isReverse ? "B" : "A"}: Line A/B presets limited to preset ${leverPreset() + 1} (Messages unaffected). Click to switch to ${isReverse ? "A (preset 1)" : "B (preset 2)"}`;
+    $("directionLever").title = leverTip;
+    $("directionLever").setAttribute("aria-label", leverTip);
     document.querySelectorAll(".scenario-button").forEach((button) => {
         const scenario = Number(button.dataset.scenario);
         const preset = Number(button.dataset.preset);
         const isConfigured = Boolean(lines[scenario]?.presets[preset]);
         const selected = scenario === selectedScenario && preset === selectedPreset;
-        button.disabled = !isConfigured;
+        const blockedByLever = lines[scenario]?.code !== "MSG" && preset !== leverPreset();
+        button.disabled = !isConfigured || blockedByLever;
+        const baseLabel = button.dataset.baseLabel ??= button.getAttribute("aria-label");
+        button.title = blockedByLever ? `Unavailable · lever is at ${isReverse ? "B (preset 2 only)" : "A (preset 1 only)"}` : isConfigured ? baseLabel : "Not configured";
         button.setAttribute("aria-pressed", String(selected));
     });
 }
@@ -444,8 +453,8 @@ $("stationUp").addEventListener("click", () => {
     if (stopIndex === previousStopIndex) render();
 });
 $("stationDown").addEventListener("click", () => moveStation(-1));
-$("routePrevious").addEventListener("click", () => { lineIndex = (lineIndex + lines.length - 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
-$("routeNext").addEventListener("click", () => { lineIndex = (lineIndex + 1) % lines.length; selectedScenario = lineIndex; selectedPreset = 0; stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
+$("routePrevious").addEventListener("click", () => { lineIndex = (lineIndex + lines.length - 1) % lines.length; selectedScenario = lineIndex; selectedPreset = defaultPreset(); stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
+$("routeNext").addEventListener("click", () => { lineIndex = (lineIndex + 1) % lines.length; selectedScenario = lineIndex; selectedPreset = defaultPreset(); stopIndex = 0; playClip(currentClip(), `Route selected · ${currentLine().name}`); });
 $("resetButton").addEventListener("click", () => { hasPressedStationForward = false; lineIndex = 0; stopIndex = -1; selectedScenario = 0; selectedPreset = 0; isReverse = false; isMaintenance = false; stopPlayback("Reset · videos stopped", true); });
 $("modeButton").addEventListener("click", () => {
     isMaintenance = !isMaintenance;
@@ -469,11 +478,18 @@ $("arrivedButton").addEventListener("click", () => {
 });
 $("directionLever").addEventListener("click", () => {
     isReverse = !isReverse;
-    lineIndex = isReverse ? 1 : 0;
-    selectedScenario = lineIndex;
-    selectedPreset = 0;
+    if (currentLine()?.code === "MSG") {
+        render(`Lever ${isReverse ? "B" : "A"}`);
+        return;
+    }
+    if (!currentLine()?.presets[leverPreset()]) {
+        render(`Lever ${isReverse ? "B" : "A"} · select a preset ${leverPreset() + 1}`);
+        return;
+    }
+    selectedPreset = leverPreset();
     stopIndex = 0;
-    playClip(currentClip(), `Direction set · ${isReverse ? "Southbound" : "Northbound"}`);
+    hasPressedStationForward = Boolean(currentClip().arrival?.approaching);
+    playClip(currentClip(), `Lever ${isReverse ? "B" : "A"} · ${currentLine().name} · ${currentPreset().name}`);
 });
 document.querySelectorAll(".scenario-button").forEach((button) => button.addEventListener("click", () => {
     selectedScenario = Number(button.dataset.scenario);
