@@ -3,9 +3,38 @@ let lines = [];
 let activeVfdPath = null;
 let pendingAnnouncement = null;
 let adAudioMuted = false;
+const videoBlobCache = new Map();
+function videoUrl(path) {
+    const url = new URL(path, document.baseURI).href;
+    return videoBlobCache.get(url) || url;
+}
+function collectVideoPaths(node, found = new Set()) {
+    if (typeof node === "string") {
+        if (/\.mp4$/i.test(node)) found.add(new URL(node, document.baseURI).href);
+    } else if (node && typeof node === "object") {
+        Object.values(node).forEach((value) => collectVideoPaths(value, found));
+    }
+    return found;
+}
+// Fully download every video into memory so playback never waits on the network.
+function preloadVideos(data) {
+    const queue = [...collectVideoPaths(data)];
+    const worker = async () => {
+        while (queue.length) {
+            const url = queue.shift();
+            try {
+                const response = await fetch(url);
+                if (!response.ok) continue;
+                videoBlobCache.set(url, URL.createObjectURL(await response.blob()));
+            } catch { }
+        }
+    };
+    Array.from({ length: 4 }, worker);
+}
 fetch("js/transit-data.json")
     .then((response) => response.json())
     .then((data) => {
+        preloadVideos(data);
         pairs = data.pairs;
         lines = data.lines.map((line) => ({
             ...line,
@@ -101,7 +130,7 @@ function render(message) {
     // $("routeCode").textContent = `${isReverse ? "S/N" : "N/S"}: 2012A`;
     const vfd = $("vfdVideo");
     if (vfd && activeVfdPath) {
-        const vfdSource = new URL(activeVfdPath, document.baseURI).href;
+        const vfdSource = videoUrl(activeVfdPath);
         if (vfd.src !== vfdSource) {
             vfd.src = vfdSource;
         }
@@ -164,7 +193,7 @@ function stopPlayback(message = "Playback stopped · ready", clearClip = false) 
 }
 function loadVideo(video, screen, path, loop, generation) {
     if (!path) return;
-    const source = new URL(path, document.baseURI).href;
+    const source = videoUrl(path);
     video.loop = loop;
     const isAdAudio = video.id === "screen-r" && isAdAudioPath(path);
     video.muted = isAdAudio && adAudioMuted;
