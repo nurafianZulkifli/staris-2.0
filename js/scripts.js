@@ -22,7 +22,7 @@ function applyDisplayMode() {
         const video = $(id);
         if (!video) return;
         if (!mode.screens) video.muted = true;
-        else video.muted = id === "screen-r" && isAdAudioPath(video.currentSrc || video.src) && adAudioMuted;
+        else video.muted = id === "screen-r" && isAdAudioPath(currentRightScreenPath) && adAudioMuted;
     });
     const vfd = $("vfdVideo");
     if (vfd) vfd.muted = !mode.vfd;
@@ -185,9 +185,12 @@ const $ = (id) => document.getElementById(id);
 function isAdAudioPath(path) {
     return /(?:^|\/)rads-(?:arr|nxt)\.mp4(?:$|[?#])/i.test(path || "");
 }
+// Videos play from blob: URLs, so the original path is remembered separately.
+let currentRightScreenPath = null;
 function updateAdAudioButton(path) {
     const button = $("adAudioToggle");
     if (!button) return;
+    currentRightScreenPath = path;
     const isAd = isAdAudioPath(path);
     $("cldScreen").classList.toggle("has-ad-audio", isAd);
     button.disabled = !isAd;
@@ -424,6 +427,10 @@ function loadVideo(video, screen, path, loop, generation) {
         if (error.name === "AbortError" || generation !== playbackGeneration) return;
         if (error.name === "NotAllowedError" && !video.muted) {
             video.muted = true;
+            if (isAdAudio) {
+                adAudioMuted = true;
+                updateAdAudioButton(path);
+            }
             video.play().catch((fallbackError) => {
                 if (fallbackError.name === "AbortError" || generation !== playbackGeneration) return;
                 isRunning = false;
@@ -627,7 +634,7 @@ $("adAudioToggle").addEventListener("click", (event) => {
     adAudioMuted = !adAudioMuted;
     const video = $("screen-r");
     video.muted = adAudioMuted;
-    updateAdAudioButton(video.currentSrc || video.src);
+    updateAdAudioButton(currentRightScreenPath);
 });
 document.addEventListener("click", () => {
     const pending = pendingAnnouncement;
