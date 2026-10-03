@@ -352,6 +352,10 @@ button {
     grid-column: 2;
 }
 
+.direction-controls .ride-control {
+    grid-column: 3;
+}
+
 .round-control {
     display: grid;
     place-items: center;

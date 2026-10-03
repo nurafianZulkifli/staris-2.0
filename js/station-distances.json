@@ -1,0 +1,21 @@
+{
+  "simulatedSpeedMetresPerSecond": 20,
+  "routes": {
+    "NSL": {
+      "TO MSP": [
+        { "from": "JUR", "to": "BBT", "metres": 1400 },
+        { "from": "BBT", "to": "BGB", "metres": 1200 },
+        { "from": "BGB", "to": "CCK", "metres": 3300 },
+        { "from": "CCK", "to": "YWT", "metres": 1460 }
+      ],
+      "TO JUR": [
+        { "from": "BBT", "to": "JURD", "metres": 1400 }
+      ]
+    },
+    "EWL": {
+      "TO PSR": [
+        { "from": "TAM", "to": "PSR", "metres": 2300 }
+      ]
+    }
+  }
+}

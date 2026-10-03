@@ -243,6 +243,66 @@ function restoreLastStation() {
         return false;
     }
 }
+function updateLcdDistance() {
+    const isStationClip = activeClip && activeClip !== pairs.maintenancePair && !isDoorsClosingPair(activeClip) &&
+        !(currentLine()?.code === "MSG" && currentStations().includes(activeClip));
+    if (ride && activeClip === ride.clip) {
+        $("lcdDistance").textContent = `Distance: ${Math.ceil(ride.remaining)} m`;
+        return;
+    }
+    $("lcdDistance").textContent = isStationClip && activeClip.displayState !== "arrived" ? `Destination: ${activeClip.destination}` : "";
+}
+// Ride simulation: counts down the metres to the next station, then plays the arrival and arrived pairs.
+let rideMode = false;
+let rideDistances = null;
+let ride = null;
+let rideDoneClip = null;
+let rideLastTick = 0;
+function segmentMetres(clip) {
+    return rideDistances?.routes?.[currentLine()?.code]?.[currentPreset()?.name]?.find((segment) => segment.to === clip.station)?.metres ?? null;
+}
+function playArrival() {
+    if (!hasPressedStationForward) return;
+    const stationClip = currentClip();
+    const arrival = stationClip.arrival;
+    if (!arrival?.approaching) return;
+    playClip(pairs[arrival.approaching], `Arriving · ${stationClip.station}`, {
+        cddLoop: false,
+        cldLoop: true,
+        ...(arrival.arrived ? { nextPair: pairs[arrival.arrived] } : {})
+    });
+}
+function tickRide() {
+    const now = performance.now();
+    const elapsed = (now - rideLastTick) / 1000;
+    rideLastTick = now;
+    if (!rideMode || !videosReady || isMaintenance || !hasPressedStationForward || !lines.length) {
+        ride = null;
+        return;
+    }
+    const stationClip = currentClip();
+    if (ride && ride.clip !== stationClip) ride = null;
+    if (activeClip !== rideDoneClip) rideDoneClip = null;
+    if (!ride) {
+        const metres = activeClip === stationClip && isRunning && stationClip.arrival?.approaching && stationClip !== rideDoneClip ? segmentMetres(stationClip) : null;
+        if (metres === null) return;
+        ride = { clip: stationClip, remaining: metres };
+        updateLcdDistance();
+        return;
+    }
+    const speed = rideDistances?.simulatedSpeedMetresPerSecond || 20;
+    ride.remaining = Math.max(0, ride.remaining - speed * elapsed);
+    updateLcdDistance();
+    if (ride.remaining > 0) return;
+    rideDoneClip = ride.clip;
+    ride = null;
+    playArrival();
+}
+setInterval(tickRide, 200);
+fetch("js/station-distances.json")
+    .then((response) => response.json())
+    .then((data) => { rideDistances = data; })
+    .catch(() => console.error("Failed to load station distances."));
 function render(message) {
     // $("routeLine").textContent = currentLine().code;
     // $("routeCode").textContent = `${isReverse ? "S/N" : "N/S"}: 2012A`;
@@ -264,7 +324,7 @@ function render(message) {
     const isArrivedClip = activeClip?.displayState === "arrived";
     const isArrival = activeClip?.displayState === "approaching" || isArrivedClip;
     $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
-    $("lcdDistance").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
+    updateLcdDistance();
     $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
     $("inUseLight").classList.toggle("on", isRunning);
@@ -467,15 +527,21 @@ $("modeButton").addEventListener("click", () => {
 });
 $("doorsClosingButton").addEventListener("click", () => playClip(doorsClosingPair(), "Doors closing", { cddLoop: true, cldLoop: true }));
 $("arrivedButton").addEventListener("click", () => {
-    if (!hasPressedStationForward) return;
-    const stationClip = currentClip();
-    const arrival = stationClip.arrival;
-    if (!arrival?.approaching) return;
-    playClip(pairs[arrival.approaching], `Arriving · ${stationClip.station}`, {
-        cddLoop: false,
-        cldLoop: true,
-        ...(arrival.arrived ? { nextPair: pairs[arrival.arrived] } : {})
-    });
+    ride = null;
+    rideDoneClip = activeClip;
+    playArrival();
+});
+$("rideButton").addEventListener("click", () => {
+    rideMode = !rideMode;
+    ride = null;
+    rideDoneClip = null;
+    const label = `Ride simulation: ${rideMode ? "on" : "off"}`;
+    $("rideButton").setAttribute("aria-label", label);
+    $("rideButton").setAttribute("aria-pressed", String(rideMode));
+    $("rideButton").title = label;
+    $("rideButton").classList.toggle("selected", rideMode);
+    $("rideCaption").innerHTML = `Ride<br>${rideMode ? "On" : "Off"}`;
+    render(label);
 });
 $("directionLever").addEventListener("click", () => {
     isReverse = !isReverse;
