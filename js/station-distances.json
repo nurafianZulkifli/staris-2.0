@@ -1,5 +1,6 @@
 {
   "simulatedSpeedMetresPerSecond": 20,
+  "dwellSeconds": 15,
   "routes": {
     "NSL": {
       "TO MSP": [

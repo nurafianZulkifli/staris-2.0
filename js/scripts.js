@@ -246,6 +246,10 @@ function restoreLastStation() {
 function updateLcdDistance() {
     const isStationClip = activeClip && activeClip !== pairs.maintenancePair && !isDoorsClosingPair(activeClip) &&
         !(currentLine()?.code === "MSG" && currentStations().includes(activeClip));
+    if (dwell && activeClip === dwell.clip) {
+        $("lcdDistance").textContent = `Dwell: ${Math.ceil(dwell.remaining)} s`;
+        return;
+    }
     if (ride && activeClip === ride.clip) {
         $("lcdDistance").textContent = `Distance: ${Math.ceil(ride.remaining)} m`;
         return;
@@ -256,6 +260,7 @@ function updateLcdDistance() {
 let rideMode = false;
 let rideDistances = null;
 let ride = null;
+let dwell = null;
 let rideDoneClip = null;
 let rideLastTick = 0;
 function segmentMetres(clip) {
@@ -278,6 +283,25 @@ function tickRide() {
     rideLastTick = now;
     if (!rideMode || !videosReady || isMaintenance || !hasPressedStationForward || !lines.length) {
         ride = null;
+        dwell = null;
+        return;
+    }
+    const arrivedHere = activeClip?.displayState === "arrived" && isRunning;
+    if (dwell && (!arrivedHere || dwell.clip !== activeClip)) dwell = null;
+    if (arrivedHere) {
+        ride = null;
+        dwell ??= { clip: activeClip, remaining: rideDistances?.dwellSeconds ?? 15 };
+        dwell.remaining -= elapsed;
+        updateLcdDistance();
+        if (dwell.remaining <= 0) {
+            dwell = null;
+            playClip(doorsClosingPair(), "Doors closing", {
+                cddLoop: false,
+                cldLoop: false,
+                stopOnComplete: true,
+                onComplete: () => { if (rideMode) moveStation(1); }
+            });
+        }
         return;
     }
     const stationClip = currentClip();
@@ -451,6 +475,7 @@ function playClip(clip, message, options = {}) {
             if (endedVideos === 2) {
                 isRunning = false;
                 render("Doors closing sequence complete");
+                options.onComplete?.();
             }
         }, { once: true }));
     }
@@ -534,6 +559,7 @@ $("arrivedButton").addEventListener("click", () => {
 $("rideButton").addEventListener("click", () => {
     rideMode = !rideMode;
     ride = null;
+    dwell = null;
     rideDoneClip = null;
     const label = `Ride simulation: ${rideMode ? "on" : "off"}`;
     $("rideButton").setAttribute("aria-label", label);
