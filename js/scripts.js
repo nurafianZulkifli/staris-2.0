@@ -51,11 +51,15 @@ let videosReady = false;
 let videosLoaded = 0;
 let videosTotal = 0;
 let pendingPlay = null;
+let loadingFile = "";
+const loadingFileName = (url) => decodeURIComponent(new URL(url).pathname.split("/assets/").pop());
 const videoLoadingText = () => `Loading videos ${videosLoaded}/${videosTotal}`;
 function reportVideoProgress() {
     if (videosReady) return;
     const route = $("lcdRoute");
     if (route) route.textContent = videoLoadingText();
+    const station = $("lcdStation");
+    if (station) station.textContent = loadingFile;
 }
 async function preloadVideos(data) {
     const ordered = new Set();
@@ -97,6 +101,8 @@ async function preloadVideos(data) {
     const worker = async () => {
         while (queue.length) {
             const url = queue.shift();
+            loadingFile = loadingFileName(url);
+            reportVideoProgress();
             for (;;) {
                 try {
                     let response = cache && await cache.match(url);
@@ -125,6 +131,7 @@ async function preloadVideos(data) {
     await (document.readyState === "complete" ? Promise.resolve() : new Promise((resolve) => window.addEventListener("load", resolve, { once: true })));
     await Promise.all(Array.from({ length: 3 }, worker));
     videosReady = true;
+    loadingFile = "";
     if (pendingPlay) {
         const [clip, message, options] = pendingPlay;
         pendingPlay = null;
@@ -351,7 +358,7 @@ function render(message) {
     $("lcdRoute").textContent = !videosReady && videosTotal ? videoLoadingText() : isMaintenanceClip ? "Maintenance Mode" : isDoorsClosingClip ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
     const isArrivedClip = activeClip?.displayState === "arrived";
     const isArrival = activeClip?.displayState === "approaching" || isArrivedClip;
-    $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
+    $("lcdStation").textContent = !videosReady && videosTotal ? loadingFile : activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
     updateLcdDistance();
     $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
