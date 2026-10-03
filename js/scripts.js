@@ -51,11 +51,11 @@ let videosReady = false;
 let videosLoaded = 0;
 let videosTotal = 0;
 let pendingPlay = null;
-const videoLoadingText = () => `Loading videos ${videosLoaded}/${videosTotal} � please wait`;
+const videoLoadingText = () => `Loading videos ${videosLoaded}/${videosTotal}`;
 function reportVideoProgress() {
     if (videosReady) return;
-    const strip = $("messageStrip");
-    if (strip) strip.textContent = videoLoadingText();
+    const route = $("lcdRoute");
+    if (route) route.textContent = videoLoadingText();
 }
 async function preloadVideos(data) {
     const ordered = new Set();
@@ -260,12 +260,12 @@ function render(message) {
     const isMaintenanceClip = activeClip === pairs.maintenancePair;
     const isMessageClip = currentLine()?.code === "MSG" && currentStations().includes(activeClip);
     const isDoorsClosingClip = isDoorsClosingPair(activeClip);
-    $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : isDoorsClosingClip ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
+    $("lcdRoute").textContent = !videosReady && videosTotal ? videoLoadingText() : isMaintenanceClip ? "Maintenance Mode" : isDoorsClosingClip ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
     const isArrivedClip = activeClip?.displayState === "arrived";
     const isArrival = activeClip?.displayState === "approaching" || isArrivedClip;
     $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
     $("lcdDistance").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip && !isArrivedClip ? `Destination: ${activeClip.destination}` : "";
-    $("messageStrip").textContent = message || (!videosReady && videosTotal ? videoLoadingText() : `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`);
+    $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
     $("inUseLight").classList.toggle("on", isRunning);
     $("activeLight").classList.toggle("on", isRunning);
@@ -343,7 +343,7 @@ function loadVideo(video, screen, path, loop, generation) {
 function playClip(clip, message, options = {}) {
     if (!videosReady) {
         pendingPlay = [clip, message, options];
-        render(videoLoadingText());
+        render();
         return;
     }
     stopPlayback("Loading video pair");

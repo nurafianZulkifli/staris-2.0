@@ -756,6 +756,11 @@ button {
         gap: 6px;
     }
 
+    .scenario-row + .scenario-row {
+        border-left: 1px solid #42484a;
+        padding-left: 12px;
+    }
+
     .scenario-label {
         margin: 1px 0 0;
     }
@@ -855,6 +860,12 @@ button {
 
     .scenario-row {
         grid-template-columns: repeat(3, minmax(40px, 1fr));
+    }
+
+    .scenario-row + .scenario-row {
+        border-left: 0;
+        border-top: 1px solid #42484a;
+        padding: 8px 0 0;
     }
 
     .scenario-name {

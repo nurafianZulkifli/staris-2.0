@@ -88,6 +88,35 @@
     },
 
 
+    "ywtNxtPair": {
+    "station": "YWT",
+    "destination": "MSP",
+    "screen-l": "assets/nsl/ywt-nxt.mp4",
+    "screen-r": "assets/nsl/ld-msp-trunc.mp4",
+    "screen-r2": "assets/nsl/ad-nxt.mp4",
+    "vfd": "assets/nsl/vfd/ywt-nxt.mp4",
+    "announcement": "assets/announcements/ywt-nxt.wav",
+    "arrival": { "approaching": "ywtArrPair", "arrived": "ywtArrdPair" }
+    },
+    "ywtArrPair": {
+    "station": "YWT",
+    "destination": "MSP",
+    "screen-l": "assets/nsl/ywt-arr.mp4",
+    "screen-r": "assets/nsl/ad-arr.mp4",
+    "vfd": "assets/nsl/vfd/ywt-arr.mp4",
+    "announcement": "assets/announcements/ywt-arr.wav",
+    "displayState": "approaching"
+    },
+    "ywtArrdPair": {
+    "station": "YWT",
+    "destination": "MSP",
+    "screen-l": "assets/nsl/ywt-arrd.mp4",
+    "screen-r": "assets/nsl/ld-msp.mp4",
+    "vfd": "assets/nsl/vfd/ywt-arrd.mp4",
+    "displayState": "arrived"
+    },
+
+
     "bbtNxtPair_jur": {
       "station": "BBT",
       "destination": "JUR",
@@ -95,6 +124,7 @@
       "screen-r": null,
       "vfd": null
     },
+
 
     "jurDNxtPair": {
       "station": "JURD",
@@ -125,6 +155,7 @@
       "vfd": "assets/nsl/vfd/jurD-arrd.mp4",
       "displayState": "arrived"
     },
+
 
     "psrNxtPair": {
       "station": "PSR",
@@ -239,7 +270,8 @@
           "stations": [
             "bbtNxtPair",
             "bgbNxtPair",
-            "cckNxtPair"
+            "cckNxtPair",
+            "ywtNxtPair"
           ]
         },
         {
