@@ -6,7 +6,7 @@
       "destination": "MSP",
       "screen-l": "assets/nsl/bbt-nxt.mp4",
       "screen-r": "assets/nsl/ld-msp-trunc.mp4",
-      "screen-r2": "assets/nsl/ad-nxt.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt.mp4",
       "vfd": "assets/nsl/vfd/bbt-nxt.mp4",
       "announcement": "assets/announcements/bbt-nxt.wav",
       "arrival": { "approaching": "bbtArrPair", "arrived": "bbtArrdPair" }
@@ -15,7 +15,7 @@
       "station": "BBT",
       "destination": "MSP",
       "screen-l": "assets/nsl/bbt-arr.mp4",
-      "screen-r": "assets/nsl/ad-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
       "vfd": "assets/nsl/vfd/bbt-arr.mp4",
       "announcement": "assets/announcements/bbt-arr.wav",
       "displayState": "approaching"
@@ -35,7 +35,7 @@
       "destination": "MSP",
       "screen-l": "assets/nsl/bgb-nxt.mp4",
       "screen-r": "assets/nsl/ld-msp-trunc.mp4",
-      "screen-r2": "assets/nsl/ad-nxt.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt2.mp4",
       "vfd": "assets/nsl/vfd/bgb-nxt.mp4",
       "announcement": "assets/announcements/bgb-nxt.wav",
       "arrival": { "approaching": "bgbArrPair", "arrived": "bgbArrdPair" }
@@ -44,7 +44,7 @@
       "station": "BGB",
       "destination": "MSP",
       "screen-l": "assets/nsl/bgb-arr.mp4",
-      "screen-r": "assets/nsl/ad-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
       "vfd": "assets/nsl/vfd/bgb-arr.mp4",
       "announcement": "assets/announcements/bgb-arr.wav",
       "displayState": "approaching"
@@ -60,20 +60,20 @@
 
 
     "cckNxtPair": {
-    "station": "CCK",
-    "destination": "MSP",
-    "screen-l": "assets/nsl/cck-nxt.mp4",
-    "screen-r": "assets/nsl/ld-msp-trunc.mp4",
-    "screen-r2": "assets/nsl/ad-nxt.mp4",
-    "vfd": "assets/nsl/vfd/cck-nxt.mp4",
-    "announcement": "assets/announcements/cck-nxt.wav",
-    "arrival": { "approaching": "cckArrPair", "arrived": "cckArrdPair" }
+      "station": "CCK",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/cck-nxt.mp4",
+      "screen-r": "assets/nsl/ld-msp-trunc.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt.mp4",
+      "vfd": "assets/nsl/vfd/cck-nxt.mp4",
+      "announcement": "assets/announcements/cck-nxt.wav",
+      "arrival": { "approaching": "cckArrPair", "arrived": "cckArrdPair" }
     },
     "cckArrPair": {
       "station": "CCK",
       "destination": "MSP",
       "screen-l": "assets/nsl/cck-arr.mp4",
-      "screen-r": "assets/nsl/ad-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
       "vfd": "assets/nsl/vfd/cck-arr.mp4",
       "announcement": "assets/announcements/cck-arr.wav",
       "displayState": "approaching"
@@ -89,31 +89,31 @@
 
 
     "ywtNxtPair": {
-    "station": "YWT",
-    "destination": "MSP",
-    "screen-l": "assets/nsl/ywt-nxt.mp4",
-    "screen-r": "assets/nsl/ld-msp-trunc.mp4",
-    "screen-r2": "assets/nsl/ad-nxt.mp4",
-    "vfd": "assets/nsl/vfd/ywt-nxt.mp4",
-    "announcement": "assets/announcements/ywt-nxt.wav",
-    "arrival": { "approaching": "ywtArrPair", "arrived": "ywtArrdPair" }
+      "station": "YWT",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/ywt-nxt.mp4",
+      "screen-r": "assets/nsl/ld-msp-trunc.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt2.mp4",
+      "vfd": "assets/nsl/vfd/ywt-nxt.mp4",
+      "announcement": "assets/announcements/ywt-nxt.wav",
+      "arrival": { "approaching": "ywtArrPair", "arrived": "ywtArrdPair" }
     },
     "ywtArrPair": {
-    "station": "YWT",
-    "destination": "MSP",
-    "screen-l": "assets/nsl/ywt-arr.mp4",
-    "screen-r": "assets/nsl/ad-arr.mp4",
-    "vfd": "assets/nsl/vfd/ywt-arr.mp4",
-    "announcement": "assets/announcements/ywt-arr.wav",
-    "displayState": "approaching"
+      "station": "YWT",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/ywt-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
+      "vfd": "assets/nsl/vfd/ywt-arr.mp4",
+      "announcement": "assets/announcements/ywt-arr.wav",
+      "displayState": "approaching"
     },
     "ywtArrdPair": {
-    "station": "YWT",
-    "destination": "MSP",
-    "screen-l": "assets/nsl/ywt-arrd.mp4",
-    "screen-r": "assets/nsl/ld-msp.mp4",
-    "vfd": "assets/nsl/vfd/ywt-arrd.mp4",
-    "displayState": "arrived"
+      "station": "YWT",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/ywt-arrd.mp4",
+      "screen-r": "assets/nsl/ld-msp.mp4",
+      "vfd": "assets/nsl/vfd/ywt-arrd.mp4",
+      "displayState": "arrived"
     },
 
 
@@ -131,7 +131,7 @@
       "destination": "JURD",
       "screen-l": "assets/nsl/jurD-nxt.mp4",
       "screen-r": "assets/nsl/ld-jur-trunc.mp4",
-      "screen-r2": "assets/nsl/ad-nxt.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt.mp4",
       "vfd": "assets/nsl/vfd/jurD-nxt.mp4",
       "vfd-next": "assets/nsl/vfd/jurD-nxt2.mp4",
       "announcement": "assets/announcements/jurD-nxt.wav",
@@ -141,7 +141,7 @@
       "station": "JURD",
       "destination": "JURD",
       "screen-l": "assets/nsl/jurD-arr.mp4",
-      "screen-r": "assets/nsl/ad-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
       "vfd": "assets/nsl/vfd/jurD-arr.mp4",
       "vfd-next": "assets/nsl/vfd/jurD-arr2.mp4",
       "announcement": "assets/announcements/jurD-arr.wav",
@@ -162,7 +162,7 @@
       "destination": "PSR",
       "screen-l": "assets/ewl/psr-nxt.mp4",
       "screen-r": "assets/ewl/ld-psr-trunc.mp4",
-      "screen-r2": "assets/nsl/ad-nxt.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt.mp4",
       "vfd": "assets/ewl/vfd/psr-nxt.mp4",
       "vfd-next": "assets/ewl/vfd/psr-nxt2.mp4",
       "announcement": "assets/announcements/psr-nxt.wav",
@@ -173,7 +173,7 @@
       "station": "PSR",
       "destination": "PSR",
       "screen-l": "assets/ewl/psr-arr.mp4",
-      "screen-r": "assets/nsl/ad-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
       "vfd": "assets/ewl/vfd/psr-arr.mp4",
       "vfd-next": "assets/ewl/vfd/psr-arr2.mp4",
       "announcement": "assets/announcements/psr-arr.wav",

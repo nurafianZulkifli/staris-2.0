@@ -176,7 +176,7 @@ let hasPressedStationForward = false;
 const lastStationStorageKey = "nsl-transit-last-station";
 const $ = (id) => document.getElementById(id);
 function isAdAudioPath(path) {
-    return /(?:^|\/)ad-(?:arr|nxt)\.mp4(?:$|[?#])/i.test(path || "");
+    return /(?:^|\/)rads-(?:arr|nxt)\.mp4(?:$|[?#])/i.test(path || "");
 }
 function updateAdAudioButton(path) {
     const button = $("adAudioToggle");
