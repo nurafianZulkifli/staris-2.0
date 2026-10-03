@@ -290,6 +290,10 @@ function tickRide() {
     if (dwell && (!arrivedHere || dwell.clip !== activeClip)) dwell = null;
     if (arrivedHere) {
         ride = null;
+        if (stopIndex >= currentStations().length - 1) {
+            dwell = null;
+            return;
+        }
         dwell ??= { clip: activeClip, remaining: rideDistances?.dwellSeconds ?? 15 };
         dwell.remaining -= elapsed;
         updateLcdDistance();
