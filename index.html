@@ -8,10 +8,13 @@
     <title>STARiS 2.0 | Works by NRFZ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="icon" href="./assets/img/core-img/logo.png" type="image/png">
+
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
         rel="stylesheet">
-        <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
@@ -24,11 +27,14 @@
             <div class="video-screen" id="cldScreen">
                 <span class="video-screen-placeholder">Screen R · STANDBY</span>
                 <video id="screen-r" aria-label="Line display video" playsinline preload="none"></video>
-                <button class="ad-audio-toggle" id="adAudioToggle" type="button" aria-label="Mute advertisement audio" title="Mute advertisement audio" aria-pressed="false">
+                <button class="ad-audio-toggle" id="adAudioToggle" type="button" aria-label="Mute advertisement audio"
+                    title="Mute advertisement audio" aria-pressed="false">
                     <svg aria-hidden="true" viewBox="0 0 24 24">
                         <path d="M11 5 6 9H3v6h3l5 4V5Z" fill="currentColor"></path>
-                        <path class="audio-waves" d="M15 9a5 5 0 0 1 0 6m3-9a9 9 0 0 1 0 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
-                        <path class="audio-muted" d="m16 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+                        <path class="audio-waves" d="M15 9a5 5 0 0 1 0 6m3-9a9 9 0 0 1 0 12" fill="none"
+                            stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+                        <path class="audio-muted" d="m16 9 5 6m0-6-5 6" fill="none" stroke="currentColor"
+                            stroke-linecap="round" stroke-width="2"></path>
                     </svg>
                 </button>
             </div>
@@ -42,7 +48,8 @@
             <div class="faceplate">
                 <header class="topbar">
                     <div class="section-label">Route / Message Selection</div>
-                    <div class="brand"><img class="brand-mark" src="assets/img/stl.png" alt="STL"><span class="brand-name">Transit Information
+                    <div class="brand"><img class="brand-mark" src="assets/img/stl.png" alt="STL"><span
+                            class="brand-name">Transit Information
                             System</span></div>
                     <div class="section-label top-right">Select Line / Message</div>
                 </header>
@@ -67,8 +74,9 @@
                                     aria-label="Reset display" title="Reset display">▣</button><span
                                     class="control-caption">Reset</span></div>
                             <div class="control-stack"><button class="round-control" id="displayModeButton"
-                                    aria-label="Display mode: all displays" title="Display mode: all displays">▤</button><span
-                                    class="control-caption" id="displayModeCaption">Display<br>All</span></div>
+                                    aria-label="Display mode: all displays"
+                                    title="Display mode: all displays">▤</button><span class="control-caption"
+                                    id="displayModeCaption">Display<br>All</span></div>
                             <div class="control-stack"><button class="round-control" id="routeNext"
                                     aria-label="Next route message" title="Next route message">➔</button><span
                                     class="control-caption">Route<br>Search</span></div>
