@@ -183,8 +183,12 @@ let hasPressedStationForward = false;
 const lastStationStorageKey = "nsl-transit-last-station";
 const $ = (id) => document.getElementById(id);
 function isAdAudioPath(path) {
-    return /(?:^|\/)rads-(?:arr|nxt)\.mp4(?:$|[?#])/i.test(path || "");
+    return /(?:^|\/)rads-(?:arr|nxt\d*)\.mp4(?:$|[?#])/i.test(path || "");
 }
+// Ads hidden: ad clips on the right screen are replaced by a looping copy of the last ld-* clip.
+let adsHidden = false;
+let lastLdPath = null;
+let rightAdRequest = null;
 // Videos play from blob: URLs, so the original path is remembered separately.
 let currentRightScreenPath = null;
 function updateAdAudioButton(path) {
@@ -197,6 +201,13 @@ function updateAdAudioButton(path) {
     button.setAttribute("aria-label", adAudioMuted ? "Unmute advertisement audio" : "Mute advertisement audio");
     button.title = adAudioMuted ? "Unmute advertisement audio" : "Mute advertisement audio";
     button.setAttribute("aria-pressed", String(adAudioMuted));
+    const adsButton = $("adVisibilityToggle");
+    if (adsButton) {
+        const label = adsHidden ? "Show advertisements" : "Hide advertisements";
+        adsButton.setAttribute("aria-label", label);
+        adsButton.title = label;
+        adsButton.setAttribute("aria-pressed", String(adsHidden));
+    }
 }
 // Lever A only enables preset 1 of the line rows; lever B only enables preset 2. Message rows are unaffected.
 // Line B (EWL) additionally allows preset 3 on lever B.
@@ -398,6 +409,7 @@ function stopPlayback(message = "Playback stopped · ready", clearClip = false) 
         video.load();
     });
     activeVfdPath = null;
+    rightAdRequest = null;
     updateAdAudioButton(null);
     const audio = $("announcementAudio");
     audio.pause();
@@ -410,13 +422,26 @@ function stopPlayback(message = "Playback stopped · ready", clearClip = false) 
 }
 function loadVideo(video, screen, path, loop, generation) {
     if (!path) return;
+    const requestedPath = path;
+    if (video.id === "screen-r") {
+        if (isAdAudioPath(path)) {
+            rightAdRequest = { path, loop };
+            if (adsHidden && lastLdPath) {
+                path = lastLdPath.replace(/-trunc(?=\.mp4)/i, "");
+                loop = true;
+            }
+        } else {
+            rightAdRequest = null;
+            lastLdPath = path;
+        }
+    }
     const source = videoUrl(path);
     video.loop = loop;
     const isAdAudio = video.id === "screen-r" && isAdAudioPath(path);
     const mode = displayModes[displayModeIndex];
     const hiddenByMode = video.id === "vfdVideo" ? !mode.vfd : !mode.screens;
     video.muted = hiddenByMode || (isAdAudio && adAudioMuted);
-    if (video.id === "screen-r") updateAdAudioButton(path);
+    if (video.id === "screen-r") updateAdAudioButton(requestedPath);
     if (video.src !== source) {
         video.src = source;
     } else {
@@ -429,7 +454,7 @@ function loadVideo(video, screen, path, loop, generation) {
             video.muted = true;
             if (isAdAudio) {
                 adAudioMuted = true;
-                updateAdAudioButton(path);
+                updateAdAudioButton(requestedPath);
             }
             video.play().catch((fallbackError) => {
                 if (fallbackError.name === "AbortError" || generation !== playbackGeneration) return;
@@ -635,6 +660,12 @@ $("adAudioToggle").addEventListener("click", (event) => {
     const video = $("screen-r");
     video.muted = adAudioMuted;
     updateAdAudioButton(currentRightScreenPath);
+});
+$("adVisibilityToggle").addEventListener("click", (event) => {
+    event.stopPropagation();
+    adsHidden = !adsHidden;
+    updateAdAudioButton(currentRightScreenPath);
+    if (rightAdRequest) loadVideo($("screen-r"), $("cldScreen"), rightAdRequest.path, rightAdRequest.loop, playbackGeneration);
 });
 document.addEventListener("click", () => {
     const pending = pendingAnnouncement;

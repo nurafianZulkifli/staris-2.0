@@ -27,6 +27,16 @@
             <div class="video-screen" id="cldScreen">
                 <span class="video-screen-placeholder">Screen R · STANDBY</span>
                 <video id="screen-r" aria-label="Line display video" playsinline preload="none"></video>
+                <button class="ad-audio-toggle ad-visibility-toggle" id="adVisibilityToggle" type="button"
+                    aria-label="Hide advertisements" title="Hide advertisements" aria-pressed="false">
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor"
+                            stroke-linejoin="round" stroke-width="2"></path>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+                        <path class="ads-hidden-slash" d="m4 20 16-16" fill="none" stroke="currentColor"
+                            stroke-linecap="round" stroke-width="2"></path>
+                    </svg>
+                </button>
                 <button class="ad-audio-toggle" id="adAudioToggle" type="button" aria-label="Mute advertisement audio"
                     title="Mute advertisement audio" aria-pressed="false">
                     <svg aria-hidden="true" viewBox="0 0 24 24">

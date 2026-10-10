@@ -113,6 +113,22 @@ button {
     display: none;
 }
 
+.ad-visibility-toggle {
+    right: 52px;
+}
+
+.video-screen:hover .ad-visibility-toggle,
+.video-screen:focus-within .ad-visibility-toggle {
+    display: grid;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ad-visibility-toggle:not([aria-pressed="true"]) .ads-hidden-slash {
+    display: none;
+}
+
 .ad-audio-toggle[aria-pressed="true"] {
     border-color: #35d9bd;
     color: #8fffe9;
