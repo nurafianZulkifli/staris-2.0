@@ -146,6 +146,65 @@
     },
 
 
+    "mslNxtPair": {
+      "station": "MSL",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/msl-nxt.mp4",
+      "screen-r": "assets/nsl/ld-msp-trunc.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt2.mp4",
+      "vfd": "assets/nsl/vfd/msl-nxt.mp4",
+      "announcement": "assets/announcements/msl-nxt.wav",
+      "arrival": { "approaching": "mslArrPair", "arrived": "mslArrdPair" }
+    },
+    "mslArrPair": {
+      "station": "MSL",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/msl-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
+      "vfd": "assets/nsl/vfd/msl-arr.mp4",
+      "announcement": "assets/announcements/msl-arr.wav",
+      "displayState": "approaching"
+    },
+    "mslArrdPair": {
+      "station": "MSL",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/msl-arrd.mp4",
+      "screen-r": "assets/nsl/ld-msp.mp4",
+      "vfd": "assets/nsl/vfd/msl-arrd.mp4",
+      "displayState": "arrived"
+    },
+
+
+    "wdlNxtPair": {
+      "station": "WDL",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/wdl-nxt.mp4",
+      "screen-r": "assets/nsl/ld-msp-trunc.mp4",
+      "screen-r2": "assets/screen-rads/rads-nxt.mp4",
+      "vfd": "assets/nsl/vfd/wdl-nxt.mp4",
+      "vfd-next": "assets/nsl/vfd/wdl-nxt2.mp4",
+      "announcement": "assets/announcements/wdl-nxt.wav",
+      "arrival": { "approaching": "wdlArrPair", "arrived": "wdlArrdPair" }
+    },
+    "wdlArrPair": {
+      "station": "WDL",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/wdl-arr.mp4",
+      "screen-r": "assets/screen-rads/rads-arr.mp4",
+      "vfd": "assets/nsl/vfd/wdl-arr.mp4",
+      "announcement": "assets/announcements/wdl-arr.wav",
+      "displayState": "approaching"
+    },
+    "wdlArrdPair": {
+      "station": "WDL",
+      "destination": "MSP",
+      "screen-l": "assets/nsl/wdl-arrd.mp4",
+      "screen-r": "assets/nsl/ld-msp.mp4",
+      "vfd": "assets/nsl/vfd/wdl-arrd.mp4",
+      "displayState": "arrived"
+    },
+
+
     "bbtNxtPair_jur": {
       "station": "BBT",
       "destination": "JUR",
@@ -301,7 +360,9 @@
             "bgbNxtPair",
             "cckNxtPair",
             "ywtNxtPair",
-            "krjNxtPair"
+            "krjNxtPair",
+            "mslNxtPair",
+            "wdlNxtPair"
           ]
         },
         {
