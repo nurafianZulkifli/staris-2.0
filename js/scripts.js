@@ -32,118 +32,16 @@ function applyDisplayMode() {
     button.title = `Display mode: ${mode.label}`;
     $("displayModeCaption").innerHTML = mode.caption;
 }
-const videoBlobCache = new Map();
+const videoBaseUrl = "https://pub-df6e544d9a6b47ca90a076e7ccc49f9a.r2.dev/";
 function videoUrl(path) {
-    const url = new URL(path, document.baseURI).href;
-    return videoBlobCache.get(url) || url;
+    const baseUrl = /\.mp4$/i.test(path) ? videoBaseUrl : document.baseURI;
+    return new URL(path, baseUrl).href;
 }
-function collectVideoPaths(node, found = new Set()) {
-    if (typeof node === "string") {
-        if (/\.mp4$/i.test(node)) found.add(new URL(node, document.baseURI).href);
-    } else if (node && typeof node === "object") {
-        Object.values(node).forEach((value) => collectVideoPaths(value, found));
-    }
-    return found;
-}
-// Loads every clip and stores it in Cache Storage so later visits load from disk instead of the network.
-const videoCacheName = "staris-videos-v1";
 let videosReady = false;
-let videosLoaded = 0;
-let videosTotal = 0;
 let pendingPlay = null;
-let loadingFile = "";
-const loadingFileName = (url) => decodeURIComponent(new URL(url).pathname.split("/assets/").pop());
-const videoLoadingText = () => `Loading videos ${videosLoaded}/${videosTotal}`;
-function reportVideoProgress() {
-    if (videosReady) return;
-    const route = $("lcdRoute");
-    if (route) route.textContent = videoLoadingText();
-    const station = $("lcdStation");
-    if (station) station.textContent = loadingFile;
-}
-async function preloadVideos(data) {
-    const ordered = new Set();
-    data.lines.forEach((line) => line.presets.forEach((preset) => preset.stations.forEach((name) => collectVideoPaths(data.pairs[name], ordered))));
-    collectVideoPaths(data, ordered);
-    const queue = [...ordered];
-    videosTotal = queue.length;
-    reportVideoProgress();
-    const cache = "caches" in window ? await caches.open(videoCacheName).catch(() => null) : null;
-    // Revalidates a saved clip against the server so replaced videos are re-downloaded; offline keeps the saved copy.
-    const isCachedCurrent = async (url, cached) => {
-        try {
-            const head = await fetch(url, { method: "HEAD", cache: "no-cache" });
-            if (!head.ok) return true;
-            const pairs = [["etag"], ["last-modified"], ["content-length"]];
-            return pairs.every(([h]) => {
-                const fresh = head.headers.get(h);
-                const old = cached.headers.get(h);
-                return !fresh || !old || fresh === old;
-            });
-        } catch {
-            return true;
-        }
-    };
-    // Retries network errors until the clip arrives; missing files (4xx) are skipped so they cannot block playback.
-    // Retries until the clip arrives so playback is only unlocked once every video is loaded.
-    const fetchWithRetry = async (url) => {
-        for (let attempt = 0; ; attempt++) {
-            if (navigator.onLine !== false) {
-                try {
-                    const response = await fetch(url, { cache: "no-cache" });
-                    if (response.ok) return response;
-                    if (response.status >= 400 && response.status < 500) return null;
-                } catch { }
-            }
-            await new Promise((resolve) => setTimeout(resolve, Math.min(1000 * 2 ** attempt, 15000)));
-        }
-    };
-    const worker = async () => {
-        while (queue.length) {
-            const url = queue.shift();
-            loadingFile = loadingFileName(url);
-            reportVideoProgress();
-            for (;;) {
-                try {
-                    let response = cache && await cache.match(url);
-                    if (response && !(await isCachedCurrent(url, response))) {
-                        await cache.delete(url);
-                        response = null;
-                    }
-                    if (!response) {
-                        response = await fetchWithRetry(url);
-                        if (!response) {
-                            console.warn("Video not found, skipping:", url);
-                            break;
-                        }
-                        if (cache) await cache.put(url, response.clone()).catch(() => { });
-                    }
-                    videoBlobCache.set(url, URL.createObjectURL(await response.blob()));
-                    break;
-                } catch {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                }
-            }
-            videosLoaded += 1;
-            reportVideoProgress();
-        }
-    };
-    await (document.readyState === "complete" ? Promise.resolve() : new Promise((resolve) => window.addEventListener("load", resolve, { once: true })));
-    await Promise.all(Array.from({ length: 3 }, worker));
-    videosReady = true;
-    loadingFile = "";
-    if (pendingPlay) {
-        const [clip, message, options] = pendingPlay;
-        pendingPlay = null;
-        playClip(clip, message, options);
-    } else {
-        render();
-    }
-}
 fetch("js/transit-data.json")
     .then((response) => response.json())
     .then((data) => {
-        preloadVideos(data);
         pairs = data.pairs;
         lines = data.lines.map((line) => ({
             ...line,
@@ -152,6 +50,13 @@ fetch("js/transit-data.json")
                 stations: preset.stations.map((name) => pairs[name])
             }))
         }));
+        videosReady = true;
+        if (pendingPlay) {
+            const [clip, message, options] = pendingPlay;
+            pendingPlay = null;
+            playClip(clip, message, options);
+            return;
+        }
         const navigationEntry = performance.getEntriesByType("navigation")[0];
         const isRefresh = navigationEntry ? navigationEntry.type === "reload" : performance.navigation?.type === 1;
         if (isRefresh && restoreLastStation()) {
@@ -222,8 +127,7 @@ const currentLine = () => lines[lineIndex];
 // Line-specific doors closing clip; falls back to the default one until that line's videos are available.
 function doorsClosingPair() {
     const lineSpecific = currentLine()?.code === "EWL" ? pairs.ewlDoorsClosingPair : null;
-    const isLoaded = lineSpecific && videoBlobCache.has(new URL(lineSpecific["screen-l"], document.baseURI).href);
-    return isLoaded ? lineSpecific : pairs.doorsClosingPair;
+    return lineSpecific || pairs.doorsClosingPair;
 }
 const isDoorsClosingPair = (clip) => clip === pairs.doorsClosingPair || clip === pairs.ewlDoorsClosingPair;
 const currentPreset = () => currentLine().presets[selectedPreset];
@@ -369,10 +273,10 @@ function render(message) {
     const isMaintenanceClip = activeClip === pairs.maintenancePair;
     const isMessageClip = currentLine()?.code === "MSG" && currentStations().includes(activeClip);
     const isDoorsClosingClip = isDoorsClosingPair(activeClip);
-    $("lcdRoute").textContent = !videosReady && videosTotal ? videoLoadingText() : isMaintenanceClip ? "Maintenance Mode" : isDoorsClosingClip ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
+    $("lcdRoute").textContent = isMaintenanceClip ? "Maintenance Mode" : isDoorsClosingClip ? "→ Doors Closing" : isMessageClip ? `→ MSG · ${activeClip.station}` : activeClip ? `→ ${currentLine().code} · ${currentPreset().name}` : "Ready...";
     const isArrivedClip = activeClip?.displayState === "arrived";
     const isArrival = activeClip?.displayState === "approaching" || isArrivedClip;
-    $("lcdStation").textContent = !videosReady && videosTotal ? loadingFile : activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
+    $("lcdStation").textContent = activeClip && !isMaintenanceClip && !isMessageClip && !isDoorsClosingClip ? `${isArrivedClip ? "Arrived:" : isArrival ? "Approaching:" : "Next:"} ${activeClip.station}` : "";
     updateLcdDistance();
     $("messageStrip").textContent = message || `${isMaintenance ? "Maintenance mode" : "System ready"} · ${isReverse ? "Southbound" : "Northbound"} · ${isRunning ? "announcement active" : "doors secured"}`;
     $("modeReadout").textContent = `${isMaintenance ? "MAINTENANCE" : "NORMAL SERVICE"} · ${isRunning ? "RUN" : "AUTO"}`;
