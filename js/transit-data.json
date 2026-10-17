@@ -242,7 +242,6 @@
       "screen-r": "assets/nsl/ld-msp-trunc.mp4",
       "screen-r2": "assets/screen-rads/rads-nxt.mp4",
       "vfd": "assets/nsl/vfd/sbw-nxt.mp4",
-      "vfd-next": "assets/nsl/vfd/sbw-nxt2.mp4",
       "announcement": "assets/announcements/sbw-nxt.wav",
       "arrival": { "approaching": "sbwArrPair", "arrived": "sbwArrdPair" }
     },
@@ -272,7 +271,6 @@
       "screen-r": "assets/nsl/ld-msp-trunc.mp4",
       "screen-r2": "assets/screen-rads/rads-nxt2.mp4",
       "vfd": "assets/nsl/vfd/cbr-nxt.mp4",
-      "vfd-next": "assets/nsl/vfd/cbr-nxt2.mp4",
       "announcement": "assets/announcements/cbr-nxt.wav",
       "arrival": { "approaching": "cbrArrPair", "arrived": "cbrArrdPair" }
     },
@@ -302,7 +300,6 @@
       "screen-r": "assets/nsl/ld-msp-trunc.mp4",
       "screen-r2": "assets/screen-rads/rads-nxt.mp4",
       "vfd": "assets/nsl/vfd/yis-nxt.mp4",
-      "vfd-next": "assets/nsl/vfd/yis-nxt2.mp4",
       "announcement": "assets/announcements/yis-nxt.wav",
       "arrival": { "approaching": "yisArrPair", "arrived": "yisArrdPair" }
     },

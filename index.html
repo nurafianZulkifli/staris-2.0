@@ -14,6 +14,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -70,7 +71,8 @@
                             <div class="route-code" aria-live="polite"><span id="routeLine">WBNRFZ</span><span
                                     id="routeCode">S/N: 11112A</span></div>
                             <div class="control-stack"><button class="round-control" id="stationUp"
-                                    aria-label="Next station" title="Next station">⬆</button><span
+                                    aria-label="Next station" title="Next station"><i class="fa-solid fa-arrow-up"
+                                        aria-hidden="true"></i></button><span
                                     class="control-caption">STN Forward</span></div>
                             <div class="control-stack"><button class="round-control mode-control" id="modeButton"
                                     aria-label="Toggle operating mode" title="Toggle operating mode">M</button><span
@@ -78,24 +80,30 @@
                         </div>
                         <div class="direction-controls">
                             <div class="control-stack"><button class="round-control" id="routePrevious"
-                                    aria-label="Previous route message" title="Previous route message">🡰</button><span
+                                    aria-label="Previous route message" title="Previous route message"><i
+                                        class="fa-solid fa-arrow-left" aria-hidden="true"></i></button><span
                                     class="control-caption">Route<br>Search</span></div>
                             <div class="control-stack"><button class="round-control" id="resetButton"
-                                    aria-label="Reset display" title="Reset display">▣</button><span
+                                    aria-label="Reset display" title="Reset display"><i
+                                        class="fa-solid fa-rotate-left" aria-hidden="true"></i></button><span
                                     class="control-caption">Reset</span></div>
                             <div class="control-stack"><button class="round-control" id="displayModeButton"
                                     aria-label="Display mode: all displays"
-                                    title="Display mode: all displays">▤</button><span class="control-caption"
+                                    title="Display mode: all displays"><i class="fa-solid fa-list"
+                                        aria-hidden="true"></i></button><span class="control-caption"
                                     id="displayModeCaption">Display<br>All</span></div>
                             <div class="control-stack"><button class="round-control" id="routeNext"
-                                    aria-label="Next route message" title="Next route message">➔</button><span
+                                    aria-label="Next route message" title="Next route message"><i
+                                        class="fa-solid fa-arrow-right" aria-hidden="true"></i></button><span
                                     class="control-caption">Route<br>Search</span></div>
                             <div class="control-stack down-control"><button class="round-control" id="stationDown"
-                                    aria-label="Previous station" title="Previous station">⬇</button><span
+                                    aria-label="Previous station" title="Previous station"><i class="fa-solid fa-arrow-down"
+                                        aria-hidden="true"></i></button><span
                                     class="control-caption">STN Backward</span></div>
                             <div class="control-stack ride-control"><button class="round-control" id="rideButton"
                                     aria-label="Ride simulation: off" aria-pressed="false"
-                                    title="Ride simulation: off">⇄</button><span class="control-caption"
+                                    title="Ride simulation: off"><i class="fa-solid fa-right-left"
+                                        aria-hidden="true"></i></button><span class="control-caption"
                                     id="rideCaption">Ride<br>Off</span></div>
                         </div>
                         <div class="route-note" id="modeReadout">NORMAL SERVICE · AUTO</div>
@@ -108,10 +116,12 @@
                         </div>
                         <div class="center-controls">
                             <button class="action-control enter" id="doorsClosingButton" aria-pressed="false"
-                                title="Play doors closing videos"><span class="action-disc">▶</span><span
+                                title="Play doors closing videos"><span class="action-disc"><i
+                                        class="fa-solid fa-play" aria-hidden="true"></i></span><span
                                     class="control-caption">Doors Closing</span></button>
                             <button class="action-control stop" id="arrivedButton" aria-pressed="false" disabled
-                                title="Press STN Forward first"><span class="action-disc">◆</span><span
+                                title="Press STN Forward first"><span class="action-disc"><i
+                                        class="fa-solid fa-diamond" aria-hidden="true"></i></span><span
                                     class="control-caption">Arrived</span></button>
                         </div>
                         <div class="download-row"><button class="download" id="downloadButton"
