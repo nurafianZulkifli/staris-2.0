@@ -10,7 +10,11 @@
         { "from": "CCK", "to": "YWT", "metres": 1460 },
         { "from": "YWT", "to": "KRJ", "metres": 2590 },
         { "from": "KRJ", "to": "MSL", "metres": 1600 },
-        { "from": "MSL", "to": "WDL", "metres": 1400 }
+        { "from": "MSL", "to": "WDL", "metres": 1400 },
+        { "from": "WDL", "to": "ADM", "metres": 1730 },
+        { "from": "ADM", "to": "SBW", "metres": 2370 },
+        { "from": "SBW", "to": "CBR", "metres": 1260 },
+        { "from": "CBR", "to": "YIS", "metres": 1700 }
 
       ],
       "TO JUR": [

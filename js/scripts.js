@@ -571,7 +571,9 @@ $("adVisibilityToggle").addEventListener("click", (event) => {
     updateAdAudioButton(currentRightScreenPath);
     if (rightAdRequest) loadVideo($("screen-r"), $("cldScreen"), rightAdRequest.path, rightAdRequest.loop, playbackGeneration);
 });
-document.addEventListener("click", () => {
+document.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("button") : null;
+    if (button && !button.disabled && typeof navigator.vibrate === "function") navigator.vibrate(12);
     const pending = pendingAnnouncement;
     if (!pending) return;
     const audio = $("announcementAudio");
