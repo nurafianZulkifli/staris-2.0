@@ -14,8 +14,15 @@
         { "from": "WDL", "to": "ADM", "metres": 1730 },
         { "from": "ADM", "to": "SBW", "metres": 2370 },
         { "from": "SBW", "to": "CBR", "metres": 1260 },
-        { "from": "CBR", "to": "YIS", "metres": 1700 }
+        { "from": "CBR", "to": "YIS", "metres": 1700 },
+        { "from": "YIS", "to": "KTB", "metres": 1400 },
+        { "from": "KTB", "to": "YCK", "metres": 3470 },
+        { "from": "YCK", "to": "AMK", "metres": 2400 },
+        { "from": "AMK", "to": "BSH", "metres": 2360 }
 
+      ],
+      "TO YIS": [
+        { "from": "CBR", "to": "YIS", "metres": 1700 }
       ],
       "TO JUR": [
         { "from": "BBT", "to": "JURD", "metres": 1400 }

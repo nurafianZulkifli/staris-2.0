@@ -39,7 +39,7 @@ function videoUrl(path) {
 }
 let videosReady = false;
 let pendingPlay = null;
-fetch("js/transit-data.json")
+fetch("js/transit-data.json", { cache: "no-store" })
     .then((response) => response.json())
     .then((data) => {
         pairs = data.pairs;
@@ -55,6 +55,11 @@ fetch("js/transit-data.json")
             const [clip, message, options] = pendingPlay;
             pendingPlay = null;
             playClip(clip, message, options);
+            return;
+        }
+        if (restoreFromUrl()) {
+            const clip = currentClip();
+            playClip(clip, `Loaded from link · ${clip.station}`);
             return;
         }
         const navigationEntry = performance.getEntriesByType("navigation")[0];
@@ -114,10 +119,10 @@ function updateAdAudioButton(path) {
         adsButton.setAttribute("aria-pressed", String(adsHidden));
     }
 }
-// Lever A only enables preset 1 of the line rows; lever B only enables preset 2. Message rows are unaffected.
-// Line B (EWL) additionally allows preset 3 on lever B.
+// Lever A enables preset 1; lever B enables preset 2 and configured preset 3 on line rows.
+// Message rows are unaffected.
 const leverPreset = () => (isReverse ? 1 : 0);
-const allowedPresets = (code) => (code === "EWL" && isReverse ? [1, 2] : [leverPreset()]);
+const allowedPresets = (code) => (isReverse && ["NSL", "EWL"].includes(code) ? [1, 2] : [leverPreset()]);
 const defaultPreset = () => {
     const line = currentLine();
     if (line?.code === "MSG") return 0;
@@ -134,6 +139,44 @@ const currentPreset = () => currentLine().presets[selectedPreset];
 const currentStations = () => currentPreset().stations;
 const currentClip = () => currentStations()[Math.max(0, stopIndex) % currentStations().length];
 const currentStop = () => currentClip().station;
+function updateActionUrl(button) {
+    const url = new URL(window.location.href);
+    const action = button.id === "stationUp"
+        ? "station-forward"
+        : button.id === "stationDown"
+            ? "station-backward"
+            : button.id
+                ? button.id.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+                : `scenario-${button.dataset.scenario}-preset-${Number(button.dataset.preset) + 1}`;
+    url.searchParams.set("action", action);
+    if (currentLine() && currentPreset() && currentStations().length) {
+        url.searchParams.set("line", currentLine().code);
+        url.searchParams.set("preset", currentPreset().name);
+        url.searchParams.set("station", currentClip().station);
+    }
+    window.history.replaceState(window.history.state, "", url);
+}
+function restoreFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const lineCode = params.get("line")?.toUpperCase();
+    const station = params.get("station")?.toUpperCase();
+    if (!lineCode || !station) return false;
+    const line = lines.findIndex((item) => item.code.toUpperCase() === lineCode);
+    if (line < 0) return false;
+    const wantedPreset = params.get("preset")?.toUpperCase();
+    const presets = lines[line].presets;
+    const hasStation = (preset) => preset.stations.some((clip) => clip.station.toUpperCase() === station);
+    let presetIndex = presets.findIndex((preset) => (!wantedPreset || preset.name.toUpperCase() === wantedPreset) && hasStation(preset));
+    if (presetIndex < 0) presetIndex = presets.findIndex(hasStation);
+    if (presetIndex < 0) return false;
+    lineIndex = line;
+    selectedScenario = line;
+    selectedPreset = presetIndex;
+    stopIndex = presets[presetIndex].stations.findIndex((clip) => clip.station.toUpperCase() === station);
+    if (lines[line].code !== "MSG") isReverse = presetIndex > 0;
+    hasPressedStationForward = true;
+    return true;
+}
 function rememberLastStation(clip) {
     if (!currentStations().includes(clip)) return;
     try {
@@ -571,6 +614,11 @@ $("adVisibilityToggle").addEventListener("click", (event) => {
     updateAdAudioButton(currentRightScreenPath);
     if (rightAdRequest) loadVideo($("screen-r"), $("cldScreen"), rightAdRequest.path, rightAdRequest.loop, playbackGeneration);
 });
+document.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("button") : null;
+    if (!button || button.disabled) return;
+    setTimeout(() => updateActionUrl(button), 0);
+}, true);
 document.addEventListener("click", (event) => {
     const button = event.target instanceof Element ? event.target.closest("button") : null;
     if (button && !button.disabled && typeof navigator.vibrate === "function") navigator.vibrate(12);
