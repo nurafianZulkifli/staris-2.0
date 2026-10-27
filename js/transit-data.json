@@ -520,13 +520,14 @@
       "screen-r": "assets/nsl/ld-yis-trunc.mp4",
       "screen-r2": "assets/screen-rads/rads-nxt.mp4",
       "vfd": "assets/nsl/vfd/yisTer-nxt.mp4",
+      "vfd-next": "assets/nsl/vfd/yisTer-nxt2.mp4",
       "announcement": "assets/announcements/yisTer-nxt.wav",
       "arrival": { "approaching": "yisTerArrPair", "arrived": "yisTerArrdPair" }
     },
     "yisTerArrPair": {
       "station": "YIS",
       "destination": "YIS",
-      "screen-l": "assets/nsl/yisTer-arr.mp4",
+      "screen-l": "assets/nsl/yis-arr.mp4",
       "screen-r": "assets/screen-rads/rads-arr.mp4",
       "vfd": "assets/nsl/vfd/yisTer-arr.mp4",
       "announcement": "assets/announcements/yisTer-arr.wav",
@@ -537,7 +538,7 @@
       "destination": "YIS",
       "screen-l": "assets/nsl/yisTer-arrd.mp4",
       "screen-r": "assets/nsl/ld-yis.mp4",
-      "vfd": "assets/nsl/vfd/yisTer-arrd.mp4",
+      "vfd": "assets/nsl/vfd/yis-arrd.mp4",
       "displayState": "arrived"
     },
 
