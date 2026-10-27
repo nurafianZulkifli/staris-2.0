@@ -22,7 +22,7 @@
 
       ],
       "TO YIS": [
-        { "from": "CBR", "to": "YIS", "metres": 1700 }
+        { "from": "KTB", "to": "YIS", "metres": 1400 }
       ],
       "TO JUR": [
         { "from": "BBT", "to": "JURD", "metres": 1400 }
