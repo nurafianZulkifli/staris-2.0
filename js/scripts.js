@@ -414,7 +414,9 @@ function loadVideo(video, screen, path, loop, generation) {
         render("Video unavailable · check local asset");
     });
 }
+let lastPlayArgs = null;
 function playClip(clip, message, options = {}) {
+    lastPlayArgs = [clip, message, options];
     if (!videosReady) {
         pendingPlay = [clip, message, options];
         render();
@@ -613,6 +615,10 @@ $("adVisibilityToggle").addEventListener("click", (event) => {
     adsHidden = !adsHidden;
     updateAdAudioButton(currentRightScreenPath);
     if (rightAdRequest) loadVideo($("screen-r"), $("cldScreen"), rightAdRequest.path, rightAdRequest.loop, playbackGeneration);
+});
+$("replayButton").addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (lastPlayArgs) playClip(...lastPlayArgs);
 });
 document.addEventListener("click", (event) => {
     const button = event.target instanceof Element ? event.target.closest("button") : null;

@@ -118,8 +118,14 @@ button {
     right: 52px;
 }
 
+.replay-toggle {
+    right: 96px;
+}
+
 .video-screen:hover .ad-visibility-toggle,
-.video-screen:focus-within .ad-visibility-toggle {
+.video-screen:hover .replay-toggle,
+.video-screen:focus-within .ad-visibility-toggle,
+.video-screen:focus-within .replay-toggle {
     display: grid;
     visibility: visible;
     opacity: 1;
