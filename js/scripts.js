@@ -96,7 +96,7 @@ function isAdAudioPath(path) {
     return /(?:^|\/)rads-(?:arr|nxt\d*)\.mp4(?:$|[?#])/i.test(path || "");
 }
 // Ads hidden: ad clips on the right screen are replaced by a looping copy of the last ld-* clip.
-let adsHidden = false;
+let adsHidden = true;
 let lastLdPath = null;
 let rightAdRequest = null;
 // Videos play from blob: URLs, so the original path is remembered separately.
@@ -376,6 +376,12 @@ function loadVideo(video, screen, path, loop, generation) {
             if (adsHidden && lastLdPath) {
                 path = lastLdPath.replace(/-trunc(?=\.mp4)/i, "");
                 loop = true;
+            } else if (adsHidden) {
+                video.pause();
+                video.removeAttribute("src");
+                video.load();
+                updateAdAudioButton(requestedPath);
+                return;
             }
         } else {
             rightAdRequest = null;
